@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
@@ -113,6 +114,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     ref={editorRef}
                     id="editor"
                     contentEditable
+                    dir="ltr"
                     dangerouslySetInnerHTML={{ __html: content }}
                     onInput={handleContentChange}
                     className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
