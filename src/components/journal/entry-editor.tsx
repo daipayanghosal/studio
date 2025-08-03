@@ -39,30 +39,24 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   const { toast } = useToast();
 
   useEffect(() => {
-    // We need a timeout to ensure the editorRef is available after the dialog animation
-    const timer = setTimeout(() => {
-      if (isOpen) {
-        if (entry) {
-          setTitle(entry.title);
-          setContent(entry.content);
-          setColor(entry.color);
-          if (editorRef.current) {
-            editorRef.current.innerHTML = entry.content;
-          }
-        } else {
-          // Reset for new entry
-          const initialContent = '<p><br></p>';
-          setTitle('');
-          setContent(initialContent);
-          setColor(entryColors[0]);
-          if (editorRef.current) {
-            editorRef.current.innerHTML = initialContent;
-          }
+    if (isOpen) {
+      if (entry) {
+        setTitle(entry.title);
+        setContent(entry.content);
+        setColor(entry.color);
+        if (editorRef.current) {
+          editorRef.current.innerHTML = entry.content;
+        }
+      } else {
+        const initialContent = '<p><br></p>';
+        setTitle('');
+        setContent(initialContent);
+        setColor(entryColors[0]);
+        if (editorRef.current) {
+          editorRef.current.innerHTML = initialContent;
         }
       }
-    }, 0);
-  
-    return () => clearTimeout(timer);
+    }
   }, [entry, isOpen]);
   
   const handleContentChange = () => {

@@ -31,11 +31,12 @@ interface EntryCardProps {
 
 export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCardProps) {
   const [contentPreview, setContentPreview] = useState('');
+  const [formattedDate, setFormattedDate] = useState('');
 
   useEffect(() => {
-    // This function will only run on the client, so we can safely use DOMParser
+    // This effect runs only on the client, preventing SSR errors.
     const stripHtml = (html: string) => {
-      if (typeof window === 'undefined') return '';
+      // DOMParser is a browser API, so it must be used in useEffect.
       const doc = new DOMParser().parseFromString(html, 'text/html');
       return doc.body.textContent || "";
     }
@@ -44,11 +45,14 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       const preview = stripHtml(entry.content).substring(0, 100);
       setContentPreview(preview);
     }
-  }, [entry.content]);
-  
-  const toDate = (date: Date | Timestamp): Date => {
-    return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
-  }
+
+    if (entry.createdAt) {
+      const toDate = (date: Date | Timestamp): Date => {
+        return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
+      }
+      setFormattedDate(format(toDate(entry.createdAt), "MMMM d, yyyy"));
+    }
+  }, [entry.content, entry.createdAt]);
 
   return (
     <Card 
@@ -59,9 +63,9 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
           <CardTitle className={cn("font-headline")}>{entry.title}</CardTitle>
-          {entry.createdAt && (
+          {formattedDate && (
             <CardDescription>
-                {format(toDate(entry.createdAt), "MMMM d, yyyy")}
+                {formattedDate}
             </CardDescription>
           )}
         </div>
