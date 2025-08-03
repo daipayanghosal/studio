@@ -57,8 +57,11 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const getGuestEntries = useCallback(() => {
+  const getGuestEntries = useCallback((): JournalEntry[] => {
     // This function is now safe because it's only called inside useEffect
+    if (typeof window === 'undefined') {
+        return []; // Return empty on server
+    }
     const localData = localStorage.getItem(GUEST_ENTRIES_KEY);
     if (localData) {
       try {
@@ -68,20 +71,18 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
           updatedAt: new Date(entry.updatedAt),
         }));
       } catch {
-        // Fallback to initial entries if JSON is corrupt
         return initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
       }
     }
-    // Fallback to initial entries if no local data
     return initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
   }, []);
 
   const migrateGuestEntries = useCallback(async (uid: string) => {
     const guestEntries = getGuestEntries();
-    const defaultEntries = initialEntries.map(e => ({...e, id: e.id, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
+    const defaultEntries = initialEntries.map((e: { id: string; createdAt: string; updatedAt: string; }) => ({...e, id: e.id, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
 
     // Avoid migration if entries are default or empty
-    if (guestEntries.length === 0 || JSON.stringify(guestEntries.map(e => e.id)) === JSON.stringify(defaultEntries.map(e => e.id))) {
+    if (guestEntries.length === 0 || JSON.stringify(guestEntries.map((e: JournalEntry) => e.id)) === JSON.stringify(defaultEntries.map(e => e.id))) {
       return; 
     }
 
@@ -121,7 +122,7 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
         const q = query(collectionRef, orderBy('createdAt', 'desc'));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-          if (snapshot.empty && !localStorage.getItem(GUEST_ENTRIES_KEY)) {
+          if (snapshot.empty && (typeof window !== 'undefined' && !localStorage.getItem(GUEST_ENTRIES_KEY))) {
              const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
              setEntries(defaultEntries);
           } else {
@@ -144,7 +145,7 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
   useEffect(() => {
     if (isGuest) {
         const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
-        if (JSON.stringify(entries.map(e => e.id)) !== JSON.stringify(defaultEntries.map(e => e.id))) {
+        if (JSON.stringify(entries.map((e: JournalEntry) => e.id)) !== JSON.stringify(defaultEntries.map(e => e.id))) {
            localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(entries));
         }
     }
@@ -163,7 +164,7 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
       setEntries(prev => {
         const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
         // If current entries are the default ones, replace them. Otherwise, prepend.
-        if(JSON.stringify(prev.map(e=>e.id)) === JSON.stringify(defaultEntries.map(e=>e.id))) {
+        if(JSON.stringify(prev.map((e: JournalEntry) => e.id)) === JSON.stringify(defaultEntries.map(e => e.id))) {
           return [newEntry];
         }
         return [newEntry, ...prev].sort((a,b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
