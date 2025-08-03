@@ -98,7 +98,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
         const newEntry: JournalEntryData = {
             ...savedEntryData,
             createdAt: new Date(),
-            updatedAt: new a Date(),
+            updatedAt: new Date(),
         }
         onSave(newEntry);
     }
@@ -111,7 +111,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
         <DialogHeader>
           <DialogTitle>{entry ? 'Edit Entry' : 'New Entry'}</DialogTitle>
           <DialogDescription>
-            {entry ? 'Make changes to your journal entry.' : 'Create a new journal entry. Click save when you\'re done.'}
+            {entry ? 'Make changes to your journal entry.' : 'Create a new journal entry. Click save when you\\'re done.'}
           </DialogDescription>
         </DialogHeader>
         <div className="flex-grow overflow-y-auto pr-2 space-y-4 py-4">

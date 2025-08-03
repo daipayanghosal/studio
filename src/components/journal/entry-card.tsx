@@ -36,8 +36,13 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
   useEffect(() => {
     // This function will only run on the client, so we can safely use DOMParser
     const stripHtml = (html: string) => {
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      return doc.body.textContent || "";
+      // Check if window is defined to ensure this runs only in the browser
+      if (typeof window !== 'undefined') {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        return doc.body.textContent || "";
+      }
+      // Fallback for server-side rendering (e.g., return an empty string or basic regex)
+      return html.replace(/<[^>]*>?/gm, '');
     }
     
     if (entry.content) {
