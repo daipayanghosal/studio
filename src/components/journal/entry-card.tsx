@@ -34,14 +34,20 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
   const [contentPreview, setContentPreview] = useState('');
 
   useEffect(() => {
+    // This function will only run on the client, so we can safely use DOMParser
     const stripHtml = (html: string) => {
-      // This function now only runs on the client, so we can safely use DOMParser
+      if (typeof window === 'undefined') {
+        // Basic stripping for server-side rendering (if ever needed), won't crash server
+        return html.replace(/<[^>]*>?/gm, '');
+      }
       const doc = new DOMParser().parseFromString(html, 'text/html');
       return doc.body.textContent || "";
     }
     
-    const preview = stripHtml(entry.content).substring(0, 100);
-    setContentPreview(preview);
+    if (entry.content) {
+      const preview = stripHtml(entry.content).substring(0, 100);
+      setContentPreview(preview);
+    }
   }, [entry.content]);
   
   const toDate = (date: Date | Timestamp): Date => {
@@ -89,7 +95,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       </CardHeader>
       <CardContent className="flex-grow">
         <p className={cn("text-sm text-muted-foreground")}>
-            {contentPreview}{contentPreview.length === 100 && '...'}
+            {contentPreview}{contentPreview.length > 0 && entry.content.length > 100 && '...'}
         </p>
       </CardContent>
     </Card>
