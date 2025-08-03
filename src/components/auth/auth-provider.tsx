@@ -8,19 +8,25 @@ import { usePathname, useRouter } from 'next/navigation';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isGuest: boolean;
+  setGuestMode: (isGuest: boolean) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextType>({ user: null, loading: true, isGuest: false, setGuestMode: () => {} });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      if (user) {
+        setIsGuest(false); // If user is logged in, they are not a guest.
+      }
       setLoading(false);
     });
 
@@ -32,12 +38,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const isAuthPage = pathname === '/login';
     
-    if (!user && !isAuthPage) {
+    if (!user && !isGuest && !isAuthPage) {
       router.push('/login');
-    } else if (user && isAuthPage) {
+    } else if ((user || isGuest) && isAuthPage) {
       router.push('/');
     }
-  }, [user, loading, pathname, router]);
+  }, [user, isGuest, loading, pathname, router]);
 
 
   if (loading) {
@@ -49,16 +55,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
   
   const isAuthPage = pathname === '/login';
-  if(!user && !isAuthPage) {
+  if(!user && !isGuest && !isAuthPage) {
     return null;
   }
-  if(user && isAuthPage) {
+  if((user || isGuest) && isAuthPage) {
     return null;
   }
 
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, isGuest, setGuestMode: setIsGuest }}>
       {children}
     </AuthContext.Provider>
   );
