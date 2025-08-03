@@ -36,12 +36,13 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
   useEffect(() => {
     // This effect runs only on the client, preventing SSR errors.
     const stripHtml = (html: string) => {
-      if (typeof window === 'undefined') {
-        return ''; // Return empty string on the server
-      }
       // DOMParser is a browser API, so it must be used in useEffect or checked for window.
       const doc = new DOMParser().parseFromString(html, 'text/html');
       return doc.body.textContent || "";
+    }
+
+    const toDate = (date: Date | Timestamp): Date => {
+      return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
     }
     
     if (entry.content) {
@@ -50,9 +51,6 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
     }
 
     if (entry.createdAt) {
-      const toDate = (date: Date | Timestamp): Date => {
-        return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
-      }
       setFormattedDate(format(toDate(entry.createdAt), "MMMM d, yyyy"));
     }
   }, [entry.content, entry.createdAt]);
@@ -66,11 +64,11 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
           <CardTitle className={cn("font-headline")}>{entry.title}</CardTitle>
-          {formattedDate && (
+          {formattedDate ? (
             <CardDescription>
                 {formattedDate}
             </CardDescription>
-          )}
+          ) : <div className="h-5 w-24 bg-muted rounded animate-pulse" />}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

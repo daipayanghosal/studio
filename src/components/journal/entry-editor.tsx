@@ -40,24 +40,27 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   useEffect(() => {
     // This effect runs when the dialog opens. It sets the initial state
     // for the title, color, and editor content.
-    if (isOpen) {
+    if (isOpen && editorRef.current) {
       if (entry) {
         // Editing an existing entry
         setTitle(entry.title);
         setColor(entry.color);
-        if (editorRef.current) {
-          // Set the initial content only once.
-          // The editor will manage its own state after this.
-          editorRef.current.innerHTML = entry.content;
-        }
+        editorRef.current.innerHTML = entry.content;
+        
+        // Move cursor to the end of the content
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(editorRef.current);
+        range.collapse(false); // false collapses to the end
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+
       } else {
         // Creating a new entry
         const initialContent = '<p><br></p>';
         setTitle('');
         setColor(entryColors[0]);
-        if (editorRef.current) {
-          editorRef.current.innerHTML = initialContent;
-        }
+        editorRef.current.innerHTML = initialContent;
       }
     }
   }, [entry, isOpen]);
