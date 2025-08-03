@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { type JournalEntry } from "@/types";
 import { format } from 'date-fns';
+import { cn } from "@/lib/utils";
 
 interface EntryCardProps {
   entry: JournalEntry;
@@ -41,7 +42,7 @@ export default function EntryCard({ entry, onEdit, onDelete }: EntryCardProps) {
     >
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
-          <CardTitle className="font-headline">{entry.title}</CardTitle>
+          <CardTitle className={cn("font-headline font-bengali")}>{entry.title}</CardTitle>
           <CardDescription>
             {format(entry.createdAt, "MMMM d, yyyy")}
           </CardDescription>
@@ -66,7 +67,7 @@ export default function EntryCard({ entry, onEdit, onDelete }: EntryCardProps) {
         </DropdownMenu>
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className="text-sm text-muted-foreground">
+        <p className={cn("text-sm text-muted-foreground font-bengali")}>
             {contentPreview}{contentPreview.length === 100 && '...'}
         </p>
       </CardContent>
