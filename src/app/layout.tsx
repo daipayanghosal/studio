@@ -12,6 +12,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'ChronoCanvas',
   description: 'A beautiful journaling app.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -21,6 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
+       <head>
+        <meta name="theme-color" content="#a8d0e6" />
+      </head>
       <body className={`${inter.variable} font-body antialiased`}>
         <AuthProvider>
           {children}
