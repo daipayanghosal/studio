@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -13,14 +12,14 @@ import { useAuth } from '../auth/auth-provider';
 import { useJournalEntries } from '@/hooks/use-journal-entries';
 
 export default function JournalDashboard() {
-  const { isGuest, user } = useAuth();
+  const { user } = useAuth();
   const {
     entries,
     addEntry,
     updateEntry,
     deleteEntry,
     loading,
-  } = useJournalEntries(user?.uid, isGuest);
+  } = useJournalEntries(user?.uid);
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);

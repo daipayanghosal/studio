@@ -32,11 +32,12 @@ interface EntryCardProps {
 export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCardProps) {
     
   const stripHtml = (html: string) => {
-    if (typeof window === 'undefined') {
-      return html.replace(/<[^>]*>?/gm, '');
+    if (typeof window !== 'undefined') {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      return doc.body.textContent || "";
     }
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || "";
+    // Basic fallback for server-side rendering
+    return html.replace(/<[^>]*>?/gm, '');
   }
   
   const contentPreview = stripHtml(entry.content).substring(0, 100);
