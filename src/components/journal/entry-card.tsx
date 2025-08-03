@@ -35,6 +35,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
   useEffect(() => {
     // This function will only run on the client, so we can safely use DOMParser
     const stripHtml = (html: string) => {
+      if (typeof window === 'undefined') return '';
       const doc = new DOMParser().parseFromString(html, 'text/html');
       return doc.body.textContent || "";
     }
@@ -90,7 +91,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       </CardHeader>
       <CardContent className="flex-grow">
         <p className={cn("text-sm text-muted-foreground")}>
-            {contentPreview}{entry.content.length > 100 && '...'}
+            {contentPreview}{entry.content && entry.content.length > 100 && '...'}
         </p>
       </CardContent>
     </Card>
