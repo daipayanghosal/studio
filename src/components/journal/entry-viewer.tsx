@@ -35,7 +35,7 @@ export default function EntryViewer({ isOpen, setIsOpen, entry, onEdit }: EntryV
           </DialogDescription>
         </DialogHeader>
         <div 
-          className="flex-grow overflow-y-auto pr-4 -mx-4 px-6 prose dark:prose-invert max-w-none font-bengali"
+          className="flex-grow overflow-y-auto pr-4 -mx-4 px-6 prose dark:prose-invert max-w-none font-bengali whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ __html: entry.content }}
         />
         <DialogFooter className="mt-4">
