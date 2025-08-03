@@ -20,31 +20,32 @@ import { type JournalEntry, type JournalEntryData } from '@/types';
 
 const GUEST_ENTRIES_KEY = 'guest-journal-entries';
 
-const initialEntries: Omit<JournalEntry, 'createdAt' | 'updatedAt'>[] = [
+const initialEntries: (Omit<JournalEntry, 'id' | 'createdAt' | 'updatedAt'> & { id: string, createdAt: string; updatedAt: string; })[] = [
     {
         id: '1',
         title: 'First Day of Spring',
         content: '<p>Today was a beautiful day. The sun was shining and the birds were singing. I went for a long walk in the park and felt so refreshed. It feels like a new beginning.</p>',
         color: '#A8D0E6',
+        createdAt: new Date(Date.now() - 0 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 0 * 24 * 60 * 60 * 1000).toISOString(),
     },
     {
         id: '2',
         title: 'A New Recipe',
         content: '<p>I tried cooking a new pasta recipe today. It was a bit challenging, but the result was delicious! <b>I should definitely make it again.</b> My family loved it too.</p>',
         color: '#FADADD',
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     },
     {
         id: '3',
         title: 'Project Brainstorm',
         content: '<p>Had a great brainstorming session for my new project. I have so many ideas now. <i>Feeling very inspired and motivated to start working on it.</i></p>',
         color: '#E6E6FA',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     },
-].map((entry, index) => ({
-    ...entry,
-    createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString(),
-}));
-
+];
 
 const convertTimestamps = (entry: JournalEntryData & { id: string }): JournalEntry => ({
   ...entry,
@@ -57,6 +58,7 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
   const [loading, setLoading] = useState(true);
 
   const getGuestEntries = useCallback(() => {
+    // This function is now safe because it's only called inside useEffect
     const localData = localStorage.getItem(GUEST_ENTRIES_KEY);
     if (localData) {
       try {
@@ -66,17 +68,20 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
           updatedAt: new Date(entry.updatedAt),
         }));
       } catch {
+        // Fallback to initial entries if JSON is corrupt
         return initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
       }
     }
+    // Fallback to initial entries if no local data
     return initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
   }, []);
 
   const migrateGuestEntries = useCallback(async (uid: string) => {
     const guestEntries = getGuestEntries();
-    const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
+    const defaultEntries = initialEntries.map(e => ({...e, id: e.id, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
 
-    if (guestEntries.length === 0 || JSON.stringify(guestEntries) === JSON.stringify(defaultEntries)) {
+    // Avoid migration if entries are default or empty
+    if (guestEntries.length === 0 || JSON.stringify(guestEntries.map(e => e.id)) === JSON.stringify(defaultEntries.map(e => e.id))) {
       return; 
     }
 
@@ -85,7 +90,7 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
 
     guestEntries.forEach((entry: JournalEntry) => {
       const { id, ...entryData } = entry;
-      const newDocRef = doc(collectionRef);
+      const newDocRef = doc(collectionRef); // Let Firestore generate ID
       batch.set(newDocRef, {
         ...entryData,
         createdAt: Timestamp.fromDate(new Date(entry.createdAt)),
@@ -100,7 +105,6 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
       console.error("Failed to migrate guest entries:", error);
     }
   }, [getGuestEntries]);
-
 
   useEffect(() => {
     if (isGuest) {
@@ -140,7 +144,7 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
   useEffect(() => {
     if (isGuest) {
         const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
-        if (JSON.stringify(entries) !== JSON.stringify(defaultEntries)) {
+        if (JSON.stringify(entries.map(e => e.id)) !== JSON.stringify(defaultEntries.map(e => e.id))) {
            localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(entries));
         }
     }
@@ -150,7 +154,7 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
     const now = new Date();
     const newEntry: JournalEntry = { 
         ...entry, 
-        id: now.toISOString(), // Temporary ID
+        id: now.toISOString(), // Temporary ID for client-side state
         createdAt: now, 
         updatedAt: now 
     };
@@ -158,10 +162,11 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
     if (isGuest) {
       setEntries(prev => {
         const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
-        if(JSON.stringify(prev) === JSON.stringify(defaultEntries)) {
-          return [newEntry]
+        // If current entries are the default ones, replace them. Otherwise, prepend.
+        if(JSON.stringify(prev.map(e=>e.id)) === JSON.stringify(defaultEntries.map(e=>e.id))) {
+          return [newEntry];
         }
-        return [newEntry, ...prev]
+        return [newEntry, ...prev].sort((a,b) => (b.createdAt as Date).getTime() - (a.createdAt as Date).getTime());
       });
       return;
     }
