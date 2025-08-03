@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { UserButton } from '@/components/auth/user-button';
@@ -8,6 +8,7 @@ import { type JournalEntry } from '@/types';
 import EntryCard from './entry-card';
 import EntryEditor from './entry-editor';
 import EntryViewer from './entry-viewer';
+import { useAuth } from '../auth/auth-provider';
 
 const initialEntries: JournalEntry[] = [
     {
@@ -38,11 +39,54 @@ const initialEntries: JournalEntry[] = [
 
 
 export default function JournalDashboard() {
-  const [entries, setEntries] = useState<JournalEntry[]>(initialEntries);
+  const { isGuest, user } = useAuth();
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewingEntry, setViewingEntry] = useState<JournalEntry | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (isGuest) {
+        const guestEntries = localStorage.getItem('guest-journal-entries');
+        if (guestEntries) {
+          try {
+            const parsedEntries = JSON.parse(guestEntries).map((entry: any) => ({
+              ...entry,
+              createdAt: new Date(entry.createdAt),
+              updatedAt: new Date(entry.updatedAt),
+            }));
+            setEntries(parsedEntries);
+          } catch (e) {
+            console.error("Failed to parse guest entries:", e);
+            setEntries([]);
+          }
+        } else {
+            setEntries(initialEntries);
+        }
+      } else if (user) {
+        // Here you would fetch user's entries from Firestore
+        // For now, we'll clear guest entries and show empty state
+        const guestEntriesRaw = localStorage.getItem('guest-journal-entries');
+        if (guestEntriesRaw) {
+          // You might want to merge these with user's saved entries.
+          // For now, we just clear them.
+          localStorage.removeItem('guest-journal-entries');
+        }
+        setEntries([]); // Show empty list for logged in users for now
+      }
+    }
+  }, [isGuest, user]);
+
+  useEffect(() => {
+    if (isGuest && typeof window !== 'undefined') {
+      // Don't save initial entries to local storage
+      if (JSON.stringify(entries) !== JSON.stringify(initialEntries)) {
+        localStorage.setItem('guest-journal-entries', JSON.stringify(entries));
+      }
+    }
+  }, [entries, isGuest]);
 
   const handleNewEntry = () => {
     setEditingEntry(null);
@@ -60,16 +104,33 @@ export default function JournalDashboard() {
   };
   
   const handleSaveEntry = (entryToSave: JournalEntry) => {
+    const now = new Date();
+    const newEntry = {
+      ...entryToSave,
+      id: entryToSave.id || now.toISOString(),
+      updatedAt: now,
+      createdAt: editingEntry ? entryToSave.createdAt : now,
+    };
+    
     if (editingEntry) {
-      setEntries(entries.map(entry => (entry.id === entryToSave.id ? entryToSave : entry)));
+      setEntries(entries.map(entry => (entry.id === newEntry.id ? newEntry : entry)));
     } else {
-      setEntries([entryToSave, ...entries]);
+      setEntries([newEntry, ...entries]);
     }
   };
 
   const handleViewEntry = (entry: JournalEntry) => {
     setViewingEntry(entry);
     setIsViewerOpen(true);
+  }
+  
+  const getEntriesToShow = () => {
+    if (isGuest) return entries;
+    if (user) {
+      // TODO: Replace with user's actual entries from Firestore
+      return entries;
+    }
+    return [];
   }
 
   return (
@@ -88,9 +149,9 @@ export default function JournalDashboard() {
       </header>
 
       <main className="container mx-auto p-4 sm:p-6 md:p-8">
-        {entries.length > 0 ? (
+        {getEntriesToShow().length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {entries.map(entry => (
+            {getEntriesToShow().map(entry => (
               <EntryCard 
                 key={entry.id} 
                 entry={entry}

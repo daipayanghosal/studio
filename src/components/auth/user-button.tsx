@@ -11,9 +11,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '../ui/button';
-import { LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { LogIn, LogOut, User as UserIcon, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export function UserButton() {
@@ -28,14 +39,23 @@ export function UserButton() {
     try {
       await signOut(auth);
       setGuestMode(false);
+      localStorage.removeItem('guest-journal-entries');
       router.push('/login');
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
+  const handleGuestSignOut = () => {
+    setGuestMode(false);
+    localStorage.removeItem('guest-journal-entries');
+    router.push('/login');
+  }
+
   const handleSignIn = () => {
     setGuestMode(false);
+    // Guest entries are already in localStorage. 
+    // The AuthProvider will handle merging after login.
     router.push('/login');
   };
   
@@ -50,11 +70,50 @@ export function UserButton() {
 
   if (isGuest) {
     return (
-      <Button onClick={handleSignIn} variant="outline">
-        <LogIn className="mr-2 h-4 w-4" />
-        Login to Save
-      </Button>
-    )
+      <AlertDialog>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              <UserIcon className="mr-2 h-4 w-4" />
+              Guest Mode
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+             <DropdownMenuItem onClick={handleSignIn}>
+              <LogIn className="mr-2 h-4 w-4" />
+              <span>Login to Save</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign Out</span>
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="text-destructive"/> Are you sure?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Signing out of guest mode will permanently delete all your unsaved journal entries. To save your work, please log in.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={handleSignIn}>
+              <LogIn className="mr-2 h-4 w-4" />
+              Login and Save
+            </AlertDialogAction>
+            <AlertDialogCancel onClick={handleGuestSignOut} className="text-destructive focus:text-destructive">
+              Sign Out Anyway
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
   }
 
 
@@ -86,10 +145,5 @@ export function UserButton() {
     );
   }
 
-  return (
-    <Button onClick={handleSignOut} variant="outline">
-      <LogOut className="mr-2 h-4 w-4" />
-      Logout
-    </Button>
-  );
+  return null;
 }
