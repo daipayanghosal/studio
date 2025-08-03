@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
@@ -66,16 +67,21 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       return;
     }
 
-    const savedEntry: Omit<JournalEntry, 'id'> = {
+    const savedEntry: Omit<JournalEntry, 'id' | 'createdAt' | 'updatedAt'> = {
       title,
       content,
       color,
     };
 
     if (entry) {
-        onSave({ ...savedEntry, id: entry.id });
+        onSave({ ...entry, ...savedEntry });
     } else {
-        onSave(savedEntry);
+        const newEntry = {
+            ...savedEntry,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        }
+        onSave(newEntry as Omit<JournalEntry, 'id'>);
     }
     setIsOpen(false);
   };

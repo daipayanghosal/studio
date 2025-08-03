@@ -13,69 +13,90 @@ import {
   doc,
   writeBatch,
   orderBy,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp,
+  getDocs,
 } from 'firebase/firestore';
 import { type JournalEntry, type JournalEntryData } from '@/types';
 
 const GUEST_ENTRIES_KEY = 'guest-journal-entries';
 
-const defaultEntries: JournalEntryData[] = [
+const createDefaultEntries = (): JournalEntry[] => [
     {
+        id: 'default-1',
         title: 'First Day of Spring',
         content: '<p>Today was a beautiful day. The sun was shining and the birds were singing. I went for a long walk in the park and felt so refreshed. It feels like a new beginning.</p>',
         color: '#A8D0E6',
+        createdAt: new Date(),
+        updatedAt: new Date(),
     },
     {
+        id: 'default-2',
         title: 'A New Recipe',
         content: '<p>I tried cooking a new pasta recipe today. It was a bit challenging, but the result was delicious! <b>I should definitely make it again.</b> My family loved it too.</p>',
         color: '#FADADD',
+        createdAt: new Date(),
+        updatedAt: new Date(),
     },
     {
+        id: 'default-3',
         title: 'Project Brainstorm',
         content: '<p>Had a great brainstorming session for my new project. I have so many ideas now. <i>Feeling very inspired and motivated to start working on it.</i></p>',
         color: '#E6E6FA',
+        createdAt: new Date(),
+        updatedAt: new Date(),
     },
 ];
 
 export function useJournalEntries(userId: string | undefined, isGuest: boolean) {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDefault, setIsDefault] = useState(false);
 
-  const getGuestEntries = useCallback((): JournalEntry[] => {
+  const getGuestEntriesFromStorage = useCallback((): JournalEntry[] | null => {
     try {
+      if (typeof window !== 'undefined') {
         const localData = localStorage.getItem(GUEST_ENTRIES_KEY);
         if (localData) {
-            const parsedData = JSON.parse(localData);
-            if (Array.isArray(parsedData) && parsedData.length > 0) {
-                return parsedData;
-            }
+          const parsedData = JSON.parse(localData);
+          return parsedData.map((e: any) => ({
+            ...e,
+            createdAt: new Date(e.createdAt),
+            updatedAt: new Date(e.updatedAt),
+          }));
         }
+      }
     } catch (error) {
-        console.error("Error reading guest entries from localStorage", error);
+      console.error("Error reading guest entries from localStorage", error);
     }
-    // If no local data, return default entries with random IDs
-    return defaultEntries.map(e => ({ ...e, id: Math.random().toString(36).substring(2, 15) }));
+    return null;
   }, []);
 
-
   const migrateGuestEntries = useCallback(async (uid: string) => {
-    const guestEntries = getGuestEntries();
-    const guestEntryIds = guestEntries.map((e: JournalEntry) => e.id).sort();
-    const defaultEntryIds = defaultEntries.map((e, index) => guestEntries[index]?.id).sort();
-    
-    const areDefault = guestEntryIds.length === defaultEntryIds.length && guestEntryIds.every((value, index) => value === defaultEntryIds[index]);
+    const guestEntries = getGuestEntriesFromStorage();
+    if (!guestEntries) return;
 
-    if (guestEntries.length === 0 || areDefault) {
-      return; 
+    // Check if the guest entries are the default ones by comparing IDs
+    const defaultEntryIds = createDefaultEntries().map(e => e.id).sort().join(',');
+    const guestEntryIds = guestEntries.map(e => e.id).sort().join(',');
+    if (defaultEntryIds === guestEntryIds) {
+      return; // Do not migrate default entries
     }
-
+    
     const collectionRef = collection(db, 'users', uid, 'entries');
     const batch = writeBatch(db);
 
     guestEntries.forEach((entry: JournalEntry) => {
       const { id, ...entryData } = entry;
       const newDocRef = doc(collectionRef);
-      batch.set(newDocRef, entryData);
+      const createdAtDate = (entry.createdAt as Timestamp)?.toDate ? (entry.createdAt as Timestamp).toDate() : new Date(entry.createdAt as string | number | Date);
+      const updatedAtDate = (entry.updatedAt as Timestamp)?.toDate ? (entry.updatedAt as Timestamp).toDate() : new Date(entry.updatedAt as string | number | Date);
+
+      batch.set(newDocRef, {
+        ...entryData,
+        createdAt: Timestamp.fromDate(createdAtDate),
+        updatedAt: Timestamp.fromDate(updatedAtDate),
+      });
     });
 
     try {
@@ -84,7 +105,7 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
     } catch (error) {
       console.error("Failed to migrate guest entries:", error);
     }
-  }, [getGuestEntries]);
+  }, [getGuestEntriesFromStorage]);
 
   useEffect(() => {
     let unsubscribe: () => void = () => {};
@@ -92,28 +113,39 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
     const loadData = async () => {
       setLoading(true);
       if (isGuest) {
-        setEntries(getGuestEntries());
+        const guestEntries = getGuestEntriesFromStorage();
+        if (guestEntries && guestEntries.length > 0) {
+            setEntries(guestEntries);
+            setIsDefault(false);
+        } else {
+            const defaultEntries = createDefaultEntries();
+            setEntries(defaultEntries);
+            setIsDefault(true);
+        }
         setLoading(false);
       } else if (userId) {
         await migrateGuestEntries(userId);
         
         const collectionRef = collection(db, 'users', userId, 'entries');
-        const q = query(collectionRef);
+        const q = query(collectionRef, orderBy('createdAt', 'desc'));
 
         unsubscribe = onSnapshot(q, (snapshot) => {
           if (snapshot.empty) {
-             setEntries(defaultEntries.map(e => ({ ...e, id: Math.random().toString(36).substring(2, 15) })));
+            setEntries(createDefaultEntries());
+            setIsDefault(true);
           } else {
             const serverEntries: JournalEntry[] = snapshot.docs.map(doc => ({
               id: doc.id,
               ...(doc.data() as JournalEntryData),
             }));
             setEntries(serverEntries);
+            setIsDefault(false);
           }
           setLoading(false);
         }, (error) => {
           console.error("Error fetching journal entries:", error);
-          setEntries(defaultEntries.map(e => ({ ...e, id: Math.random().toString(36).substring(2, 15) }))); // Fallback to default on error
+          setEntries(createDefaultEntries());
+          setIsDefault(true);
           setLoading(false);
         });
       } else {
@@ -125,45 +157,46 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
     loadData();
 
     return () => unsubscribe();
-  }, [userId, isGuest, getGuestEntries, migrateGuestEntries]);
+  }, [userId, isGuest, getGuestEntriesFromStorage, migrateGuestEntries]);
   
   useEffect(() => {
-    if (isGuest) {
-       localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(entries));
+    if (isGuest && !loading) {
+       if (typeof window !== 'undefined') {
+          // Do not save the default entries to local storage
+          if (!isDefault) {
+            localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(entries));
+          } else {
+            // If entries become default (e.g. user deletes all entries), remove from storage
+            localStorage.removeItem(GUEST_ENTRIES_KEY);
+          }
+       }
     }
-  }, [entries, isGuest]);
+  }, [entries, isGuest, isDefault, loading]);
 
   const addEntry = async (entry: JournalEntryData) => {
     if (isGuest) {
       const newEntry: JournalEntry = { 
-          ...entry, 
+          ...entry,
           id: new Date().toISOString(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
       };
-      setEntries(prev => {
-        const isDefault = prev.length === defaultEntries.length;
-        if(isDefault) {
-          return [newEntry];
-        }
-        return [newEntry, ...prev];
-      });
+      // If current entries are the default ones, replace them. Otherwise, add to them.
+      setEntries(prev => (isDefault ? [newEntry] : [newEntry, ...prev]));
+      setIsDefault(false);
       return;
     }
     
     if(userId) {
         try {
             const collectionRef = collection(db, 'users', userId, 'entries');
-            const isDefault = entries.length === defaultEntries.length;
-
-            if(isDefault) {
-              const batch = writeBatch(db);
-              entries.forEach(entryToDelete => {
-                const docRef = doc(db, 'users', userId, 'entries', entryToDelete.id);
-                batch.delete(docRef);
-              });
-              await batch.commit();
-            }
-
-            await addDoc(collectionRef, entry);
+            // If the current entries are the default ones, we don't need to do anything special here,
+            // as the onSnapshot listener will simply replace them with the new single entry from the server.
+            await addDoc(collectionRef, {
+              ...entry,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
         } catch (error) {
             console.error("Error adding entry: ", error);
         }
@@ -171,15 +204,20 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
   };
 
   const updateEntry = async (entry: JournalEntry) => {
+    const { id, ...dataToUpdate } = entry;
+      
     if (isGuest) {
-        setEntries(prev => prev.map(e => (e.id === entry.id ? entry : e)));
+        setEntries(prev => prev.map(e => (e.id === entry.id ? {...entry, updatedAt: new Date()} : e)));
+        setIsDefault(false);
         return;
     }
     if (userId) {
         const entryRef = doc(db, 'users', userId, 'entries', entry.id);
-        const { id, ...dataToUpdate } = entry;
         try {
-            await updateDoc(entryRef, dataToUpdate);
+            await updateDoc(entryRef, {
+              ...dataToUpdate,
+              updatedAt: serverTimestamp(),
+            });
         } catch (error) {
             console.error("Error updating entry: ", error);
         }
@@ -188,8 +226,12 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
 
   const deleteEntry = async (id: string) => {
     if (isGuest) {
-        setEntries(prev => prev.filter(e => e.id !== id));
-        return;
+      setEntries(prev => prev.filter(e => e.id !== id));
+      if (entries.length === 1) { // If deleting the last entry
+        setIsDefault(true);
+        setEntries(createDefaultEntries());
+      }
+      return;
     }
 
     if(userId) {

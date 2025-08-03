@@ -1,6 +1,9 @@
+
 "use client";
 
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { format } from "date-fns";
+import type { Timestamp } from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -38,6 +41,10 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
   
   const contentPreview = stripHtml(entry.content).substring(0, 100);
 
+  const toDate = (date: Date | Timestamp) => {
+    return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
+  }
+
   return (
     <Card 
       className="flex flex-col overflow-hidden transition-all hover:shadow-xl cursor-pointer"
@@ -47,6 +54,11 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
           <CardTitle className={cn("font-headline")}>{entry.title}</CardTitle>
+          {entry.createdAt && (
+            <CardDescription>
+                {format(toDate(entry.createdAt), "MMMM d, yyyy")}
+            </CardDescription>
+          )}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
