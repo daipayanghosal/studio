@@ -42,8 +42,8 @@ export default function JournalDashboard() {
     deleteEntry(id);
   };
   
-  const handleSaveEntry = (entryToSave: JournalEntry) => {
-    if (editingEntry) {
+  const handleSaveEntry = (entryToSave: JournalEntry | Omit<JournalEntry, 'id'>) => {
+    if ('id' in entryToSave) {
       updateEntry(entryToSave);
     } else {
       addEntry(entryToSave);

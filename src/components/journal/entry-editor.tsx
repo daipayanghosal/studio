@@ -16,7 +16,6 @@ import { Label } from '@/components/ui/label';
 import { type JournalEntry } from '@/types';
 import EditorToolbar from './editor-toolbar';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 interface EntryEditorProps {
@@ -81,21 +80,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
     setIsOpen(false);
   };
 
-  const handleSaveWrapper = () => {
-      const entryToSave: Omit<JournalEntry, 'id'> = {
-        title: title,
-        content: content,
-        color: color,
-      };
-
-      if (entry) {
-        onSave({ ...entryToSave, id: entry.id });
-      } else {
-        onSave(entryToSave);
-      }
-      setIsOpen(false);
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
@@ -152,7 +136,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                 Cancel
             </Button>
           </DialogClose>
-          <Button type="button" onClick={handleSaveWrapper}>
+          <Button type="button" onClick={handleSave}>
             Save
           </Button>
         </DialogFooter>

@@ -1,6 +1,4 @@
 
-import { Timestamp } from "firebase/firestore";
-
 export type JournalEntry = {
   id: string;
   title: string;

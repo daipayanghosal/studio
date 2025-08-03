@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,63 +12,60 @@ import {
   deleteDoc,
   doc,
   writeBatch,
+  orderBy,
+  serverTimestamp
 } from 'firebase/firestore';
 import { type JournalEntry, type JournalEntryData } from '@/types';
 
 const GUEST_ENTRIES_KEY = 'guest-journal-entries';
 
-const defaultEntries: JournalEntry[] = [
+const defaultEntries: JournalEntryData[] = [
     {
-        id: '1',
         title: 'First Day of Spring',
         content: '<p>Today was a beautiful day. The sun was shining and the birds were singing. I went for a long walk in the park and felt so refreshed. It feels like a new beginning.</p>',
         color: '#A8D0E6',
     },
     {
-        id: '2',
         title: 'A New Recipe',
         content: '<p>I tried cooking a new pasta recipe today. It was a bit challenging, but the result was delicious! <b>I should definitely make it again.</b> My family loved it too.</p>',
         color: '#FADADD',
     },
     {
-        id: '3',
         title: 'Project Brainstorm',
         content: '<p>Had a great brainstorming session for my new project. I have so many ideas now. <i>Feeling very inspired and motivated to start working on it.</i></p>',
         color: '#E6E6FA',
     },
 ];
 
-const convertToJournalEntry = (docData: JournalEntryData & { id: string }): JournalEntry => ({
-  ...docData,
-});
-
 export function useJournalEntries(userId: string | undefined, isGuest: boolean) {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // This function now only gets called on the client-side
-  const getGuestEntriesFromStorage = useCallback((): JournalEntry[] => {
-    const localData = localStorage.getItem(GUEST_ENTRIES_KEY);
-    if (localData) {
-      try {
-        const parsedData = JSON.parse(localData);
-        if (Array.isArray(parsedData)) {
-            return parsedData;
+  const getGuestEntries = useCallback((): JournalEntry[] => {
+    try {
+        const localData = localStorage.getItem(GUEST_ENTRIES_KEY);
+        if (localData) {
+            const parsedData = JSON.parse(localData);
+            if (Array.isArray(parsedData) && parsedData.length > 0) {
+                return parsedData;
+            }
         }
-      } catch {
-        return defaultEntries;
-      }
+    } catch (error) {
+        console.error("Error reading guest entries from localStorage", error);
     }
-    return defaultEntries;
+    // If no local data, return default entries with random IDs
+    return defaultEntries.map(e => ({ ...e, id: Math.random().toString(36).substring(2, 15) }));
   }, []);
 
-  const migrateGuestEntries = useCallback(async (uid: string) => {
-    const guestEntries = getGuestEntriesFromStorage();
-    
-    const guestEntryIds = guestEntries.map((e: JournalEntry) => e.id).sort().join(',');
-    const defaultEntryIds = defaultEntries.map((e: JournalEntry) => e.id).sort().join(',');
 
-    if (guestEntries.length === 0 || guestEntryIds === defaultEntryIds) {
+  const migrateGuestEntries = useCallback(async (uid: string) => {
+    const guestEntries = getGuestEntries();
+    const guestEntryIds = guestEntries.map((e: JournalEntry) => e.id).sort();
+    const defaultEntryIds = defaultEntries.map((e, index) => guestEntries[index]?.id).sort();
+    
+    const areDefault = guestEntryIds.length === defaultEntryIds.length && guestEntryIds.every((value, index) => value === defaultEntryIds[index]);
+
+    if (guestEntries.length === 0 || areDefault) {
       return; 
     }
 
@@ -86,66 +84,64 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
     } catch (error) {
       console.error("Failed to migrate guest entries:", error);
     }
-  }, [getGuestEntriesFromStorage]);
+  }, [getGuestEntries]);
 
   useEffect(() => {
     let unsubscribe: () => void = () => {};
 
-    if (isGuest) {
-      setEntries(getGuestEntriesFromStorage());
-      setLoading(false);
-    } else if (userId) {
+    const loadData = async () => {
       setLoading(true);
-      
-      migrateGuestEntries(userId).then(() => {
+      if (isGuest) {
+        setEntries(getGuestEntries());
+        setLoading(false);
+      } else if (userId) {
+        await migrateGuestEntries(userId);
+        
         const collectionRef = collection(db, 'users', userId, 'entries');
         const q = query(collectionRef);
 
         unsubscribe = onSnapshot(q, (snapshot) => {
           if (snapshot.empty) {
-             setEntries(defaultEntries);
+             setEntries(defaultEntries.map(e => ({ ...e, id: Math.random().toString(36).substring(2, 15) })));
           } else {
-            const serverEntries = snapshot.docs.map(doc => convertToJournalEntry({ id: doc.id, ...(doc.data() as JournalEntryData) }));
+            const serverEntries: JournalEntry[] = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...(doc.data() as JournalEntryData),
+            }));
             setEntries(serverEntries);
           }
           setLoading(false);
         }, (error) => {
           console.error("Error fetching journal entries:", error);
-          setEntries(defaultEntries); // Fallback to default on error
+          setEntries(defaultEntries.map(e => ({ ...e, id: Math.random().toString(36).substring(2, 15) }))); // Fallback to default on error
           setLoading(false);
         });
-      });
-    } else {
+      } else {
         setEntries([]);
         setLoading(false);
-    }
+      }
+    };
+    
+    loadData();
 
     return () => unsubscribe();
-  }, [userId, isGuest, getGuestEntriesFromStorage, migrateGuestEntries]);
+  }, [userId, isGuest, getGuestEntries, migrateGuestEntries]);
   
   useEffect(() => {
     if (isGuest) {
-        // This effect only runs on the client, so localStorage is safe to use.
-        const guestEntryIds = entries.map((e: JournalEntry) => e.id).sort().join(',');
-        const defaultEntryIds = defaultEntries.map((e: JournalEntry) => e.id).sort().join(',');
-        
-        // Only save to local storage if entries are not the default ones and not empty.
-        if (entries.length > 0 && guestEntryIds !== defaultEntryIds) {
-           localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(entries));
-        }
+       localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(entries));
     }
   }, [entries, isGuest]);
 
-  const addEntry = async (entry: Omit<JournalEntry, 'id'>) => {
+  const addEntry = async (entry: JournalEntryData) => {
     if (isGuest) {
       const newEntry: JournalEntry = { 
           ...entry, 
-          id: new Date().toISOString(), // Temporary ID for client-side
+          id: new Date().toISOString(),
       };
       setEntries(prev => {
-        const prevIds = prev.map((e: JournalEntry) => e.id).sort().join(',');
-        const defaultIds = defaultEntries.map((e: JournalEntry) => e.id).sort().join(',');
-        if(prev.length === defaultEntries.length && prevIds === defaultIds) {
+        const isDefault = prev.length === defaultEntries.length;
+        if(isDefault) {
           return [newEntry];
         }
         return [newEntry, ...prev];
@@ -156,13 +152,9 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
     if(userId) {
         try {
             const collectionRef = collection(db, 'users', userId, 'entries');
-            // If the user has default entries, remove them before adding new one.
-            const defaultEntryIds = defaultEntries.map(e => e.id);
-            const currentEntryIds = entries.map(e => e.id);
-            const isDefault = defaultEntryIds.every(id => currentEntryIds.includes(id));
+            const isDefault = entries.length === defaultEntries.length;
 
-            if(isDefault && entries.length === defaultEntries.length) {
-              // Delete default entries before adding the new one.
+            if(isDefault) {
               const batch = writeBatch(db);
               entries.forEach(entryToDelete => {
                 const docRef = doc(db, 'users', userId, 'entries', entryToDelete.id);
