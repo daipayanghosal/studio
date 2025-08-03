@@ -63,7 +63,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
     if(editorRef.current) {
         setContent(editorRef.current.innerHTML);
     }
-  }
+  };
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -128,6 +128,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     contentEditable
                     onInput={handleContentChange}
                     className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
+                    dangerouslySetInnerHTML={{ __html: content }}
                 />
               </div>
             </div>
