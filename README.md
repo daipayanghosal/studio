@@ -2,6 +2,60 @@
 
 Welcome to ChronoCanvas, your personal digital journal designed for reflection and organization. This manual will guide you through using the app's features.
 
+## Environment Setup
+
+Before using ChronoCanvas, you need to configure your environment variables:
+
+1. Copy the example environment file:
+   ```bash
+   copy .env.example .env.local
+   ```
+
+2. Update the `.env.local` file with your actual values:
+
+### Firebase Configuration
+
+To set up Firebase:
+1. Go to the [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project or select an existing one
+3. Navigate to Project Settings > General > Your apps
+4. Add a web app and copy the configuration values
+5. Update these variables in your `.env.local`:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
+
+**Note:** Never commit your `.env.local` file to version control. It contains sensitive information.
+
+## Development
+
+### Installing Dependencies
+
+```bash
+npm install
+```
+
+### Running the Development Server
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:9002`.
+
+### Building for Production
+
+```bash
+npm run build
+npm run start
+```
+
 ## Getting Started
 
 To begin using ChronoCanvas, you will need to sign in using your Google account.

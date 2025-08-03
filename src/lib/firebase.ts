@@ -3,16 +3,16 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// IMPORTANT: Replace this with your own Firebase configuration
+// Firebase configuration using environment variables
 // For more information on how to get this, visit:
 // https://firebase.google.com/docs/web/setup#available-libraries
 const firebaseConfig = {
-  apiKey: "AIzaSyB1E5IAVYmFsClrFx4s5k65Iv8HnJvJxIY",
-  authDomain: "chronocanvas-nakny.firebaseapp.com",
-  projectId: "chronocanvas-nakny",
-  storageBucket: "chronocanvas-nakny.firebasestorage.app",
-  messagingSenderId: "1092336481608",
-  appId: "1:1092336481608:web:6806ada9653c2b8b602f7d"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!
 };
 
 // Initialize Firebase
