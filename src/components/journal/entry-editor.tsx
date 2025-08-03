@@ -33,7 +33,6 @@ const entryColors = [
 
 export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryEditorProps) {
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
   const [color, setColor] = useState(entryColors[0]);
   const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -42,7 +41,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
     if (isOpen) {
       if (entry) {
         setTitle(entry.title);
-        setContent(entry.content);
         setColor(entry.color);
         if (editorRef.current) {
           editorRef.current.innerHTML = entry.content;
@@ -50,7 +48,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       } else {
         const initialContent = '<p><br></p>';
         setTitle('');
-        setContent(initialContent);
         setColor(entryColors[0]);
         if (editorRef.current) {
           editorRef.current.innerHTML = initialContent;
@@ -59,13 +56,12 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
     }
   }, [entry, isOpen]);
   
-  const handleContentChange = () => {
-    if(editorRef.current) {
-        setContent(editorRef.current.innerHTML);
-    }
+  const getContent = () => {
+    return editorRef.current?.innerHTML || '';
   };
 
   const handleSave = () => {
+    const currentContent = getContent();
     if (!title.trim()) {
       toast({
         title: "Title is required",
@@ -77,7 +73,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
 
     const savedEntryData: Omit<JournalEntry, 'id' | 'createdAt' | 'updatedAt'> = {
       title,
-      content,
+      content: currentContent,
       color,
     };
     
@@ -105,7 +101,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
         <DialogHeader>
           <DialogTitle>{entry ? 'Edit Entry' : 'New Entry'}</DialogTitle>
           <DialogDescription>
-            {entry ? 'Make changes to your journal entry.' : 'Create a new journal entry. Click save when you\\'re done.'}
+            {entry ? 'Make changes to your journal entry.' : "Create a new journal entry. Click save when you\\'re done."}
           </DialogDescription>
         </DialogHeader>
         <div className="flex-grow overflow-y-auto pr-2 space-y-4 py-4">
@@ -126,9 +122,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     ref={editorRef}
                     id="editor"
                     contentEditable
-                    onInput={handleContentChange}
                     className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
-                    dangerouslySetInnerHTML={{ __html: content }}
                 />
               </div>
             </div>

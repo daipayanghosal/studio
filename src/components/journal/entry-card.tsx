@@ -36,7 +36,10 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
   useEffect(() => {
     // This effect runs only on the client, preventing SSR errors.
     const stripHtml = (html: string) => {
-      // DOMParser is a browser API, so it must be used in useEffect.
+      if (typeof window === 'undefined') {
+        return ''; // Return empty string on the server
+      }
+      // DOMParser is a browser API, so it must be used in useEffect or checked for window.
       const doc = new DOMParser().parseFromString(html, 'text/html');
       return doc.body.textContent || "";
     }
@@ -95,7 +98,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       </CardHeader>
       <CardContent className="flex-grow">
         <p className={cn("text-sm text-muted-foreground")}>
-            {contentPreview}{entry.content && entry.content.length > 100 && '...'}
+            {contentPreview}{entry.content && contentPreview.length >= 100 && '...'}
         </p>
       </CardContent>
     </Card>
