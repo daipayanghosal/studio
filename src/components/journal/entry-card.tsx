@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -36,13 +35,8 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
   useEffect(() => {
     // This function will only run on the client, so we can safely use DOMParser
     const stripHtml = (html: string) => {
-      // Check if window is defined to ensure this runs only in the browser
-      if (typeof window !== 'undefined') {
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        return doc.body.textContent || "";
-      }
-      // Fallback for server-side rendering (e.g., return an empty string or basic regex)
-      return html.replace(/<[^>]*>?/gm, '');
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      return doc.body.textContent || "";
     }
     
     if (entry.content) {
@@ -96,7 +90,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       </CardHeader>
       <CardContent className="flex-grow">
         <p className={cn("text-sm text-muted-foreground")}>
-            {contentPreview}{contentPreview.length > 0 && entry.content.length > 100 && '...'}
+            {contentPreview}{entry.content.length > 100 && '...'}
         </p>
       </CardContent>
     </Card>
