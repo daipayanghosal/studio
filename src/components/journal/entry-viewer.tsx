@@ -14,6 +14,7 @@ import { type JournalEntry } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Edit } from 'lucide-react';
+import { Timestamp } from 'firebase/firestore';
 
 interface EntryViewerProps {
   isOpen: boolean;
@@ -25,13 +26,20 @@ interface EntryViewerProps {
 export default function EntryViewer({ isOpen, setIsOpen, entry, onEdit }: EntryViewerProps) {
   if (!isOpen) return null;
 
+  const getDate = (date: Date | Timestamp) => {
+    if (date instanceof Timestamp) {
+      return date.toDate();
+    }
+    return date;
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className={cn("font-headline text-3xl")}>{entry.title}</DialogTitle>
           <DialogDescription>
-            {format(entry.createdAt, "MMMM d, yyyy 'at' h:mm a")}
+            {format(getDate(entry.createdAt), "MMMM d, yyyy 'at' h:mm a")}
           </DialogDescription>
         </DialogHeader>
         <div 

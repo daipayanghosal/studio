@@ -20,32 +20,31 @@ import { type JournalEntry, type JournalEntryData } from '@/types';
 
 const GUEST_ENTRIES_KEY = 'guest-journal-entries';
 
-const initialEntries: JournalEntry[] = [
+const initialEntries: Omit<JournalEntry, 'createdAt' | 'updatedAt'>[] = [
     {
         id: '1',
         title: 'First Day of Spring',
         content: '<p>Today was a beautiful day. The sun was shining and the birds were singing. I went for a long walk in the park and felt so refreshed. It feels like a new beginning.</p>',
         color: '#A8D0E6',
-        createdAt: new Date('2024-03-20T10:00:00Z'),
-        updatedAt: new Date('2024-03-20T10:00:00Z'),
     },
     {
         id: '2',
         title: 'A New Recipe',
         content: '<p>I tried cooking a new pasta recipe today. It was a bit challenging, but the result was delicious! <b>I should definitely make it again.</b> My family loved it too.</p>',
         color: '#FADADD',
-        createdAt: new Date('2024-03-22T18:30:00Z'),
-        updatedAt: new Date('2024-03-22T19:00:00Z'),
     },
     {
         id: '3',
         title: 'Project Brainstorm',
         content: '<p>Had a great brainstorming session for my new project. I have so many ideas now. <i>Feeling very inspired and motivated to start working on it.</i></p>',
         color: '#E6E6FA',
-        createdAt: new Date('2024-03-25T14:15:00Z'),
-        updatedAt: new Date('2024-03-25T14:15:00Z'),
     },
-];
+].map((entry, index) => ({
+    ...entry,
+    createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString(),
+}));
+
 
 const convertTimestamps = (entry: JournalEntryData & { id: string }): JournalEntry => ({
   ...entry,
@@ -67,15 +66,17 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
           updatedAt: new Date(entry.updatedAt),
         }));
       } catch {
-        return initialEntries;
+        return initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
       }
     }
-    return initialEntries;
+    return initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
   }, []);
 
   const migrateGuestEntries = useCallback(async (uid: string) => {
     const guestEntries = getGuestEntries();
-    if (guestEntries.length === 0 || JSON.stringify(guestEntries) === JSON.stringify(initialEntries)) {
+    const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
+
+    if (guestEntries.length === 0 || JSON.stringify(guestEntries) === JSON.stringify(defaultEntries)) {
       return; 
     }
 
@@ -116,8 +117,13 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
         const q = query(collectionRef, orderBy('createdAt', 'desc'));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-          const serverEntries = snapshot.docs.map(doc => convertTimestamps({ id: doc.id, ...(doc.data() as JournalEntryData) }));
-          setEntries(serverEntries);
+          if (snapshot.empty && !localStorage.getItem(GUEST_ENTRIES_KEY)) {
+             const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
+             setEntries(defaultEntries);
+          } else {
+            const serverEntries = snapshot.docs.map(doc => convertTimestamps({ id: doc.id, ...(doc.data() as JournalEntryData) }));
+            setEntries(serverEntries);
+          }
           setLoading(false);
         }, (error) => {
           console.error("Error fetching journal entries:", error);
@@ -133,8 +139,8 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
   
   useEffect(() => {
     if (isGuest) {
-        // Avoid saving the initial demo entries to local storage
-        if (JSON.stringify(entries) !== JSON.stringify(initialEntries)) {
+        const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
+        if (JSON.stringify(entries) !== JSON.stringify(defaultEntries)) {
            localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(entries));
         }
     }
@@ -150,7 +156,13 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
     };
 
     if (isGuest) {
-      setEntries(prev => [newEntry, ...prev]);
+      setEntries(prev => {
+        const defaultEntries = initialEntries.map(e => ({...e, createdAt: new Date(e.createdAt), updatedAt: new Date(e.updatedAt)}));
+        if(JSON.stringify(prev) === JSON.stringify(defaultEntries)) {
+          return [newEntry]
+        }
+        return [newEntry, ...prev]
+      });
       return;
     }
     
