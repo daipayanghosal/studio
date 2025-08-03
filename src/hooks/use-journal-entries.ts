@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -46,28 +45,25 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // This function now only gets called on the client-side
   const getGuestEntriesFromStorage = useCallback((): JournalEntry[] => {
     const localData = localStorage.getItem(GUEST_ENTRIES_KEY);
     if (localData) {
       try {
         const parsedData = JSON.parse(localData);
-        // Basic validation to ensure it's an array
         if (Array.isArray(parsedData)) {
             return parsedData;
         }
       } catch {
-        // If parsing fails, fall back to default
         return defaultEntries;
       }
     }
-    // If no local data, return default
     return defaultEntries;
   }, []);
 
   const migrateGuestEntries = useCallback(async (uid: string) => {
     const guestEntries = getGuestEntriesFromStorage();
     
-    // Avoid migration if entries are default or empty
     const guestEntryIds = guestEntries.map((e: JournalEntry) => e.id).sort().join(',');
     const defaultEntryIds = defaultEntries.map((e: JournalEntry) => e.id).sort().join(',');
 
@@ -129,10 +125,11 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
   
   useEffect(() => {
     if (isGuest) {
+        // This effect only runs on the client, so localStorage is safe to use.
         const guestEntryIds = entries.map((e: JournalEntry) => e.id).sort().join(',');
         const defaultEntryIds = defaultEntries.map((e: JournalEntry) => e.id).sort().join(',');
         
-        // Only save to local storage if entries are not the default ones.
+        // Only save to local storage if entries are not the default ones and not empty.
         if (entries.length > 0 && guestEntryIds !== defaultEntryIds) {
            localStorage.setItem(GUEST_ENTRIES_KEY, JSON.stringify(entries));
         }
@@ -158,7 +155,23 @@ export function useJournalEntries(userId: string | undefined, isGuest: boolean) 
     
     if(userId) {
         try {
-            await addDoc(collection(db, 'users', userId, 'entries'), entry);
+            const collectionRef = collection(db, 'users', userId, 'entries');
+            // If the user has default entries, remove them before adding new one.
+            const defaultEntryIds = defaultEntries.map(e => e.id);
+            const currentEntryIds = entries.map(e => e.id);
+            const isDefault = defaultEntryIds.every(id => currentEntryIds.includes(id));
+
+            if(isDefault && entries.length === defaultEntries.length) {
+              // Delete default entries before adding the new one.
+              const batch = writeBatch(db);
+              entries.forEach(entryToDelete => {
+                const docRef = doc(db, 'users', userId, 'entries', entryToDelete.id);
+                batch.delete(docRef);
+              });
+              await batch.commit();
+            }
+
+            await addDoc(collectionRef, entry);
         } catch (error) {
             console.error("Error adding entry: ", error);
         }

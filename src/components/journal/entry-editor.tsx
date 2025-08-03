@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
@@ -24,7 +23,7 @@ interface EntryEditorProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   entry: JournalEntry | null;
-  onSave: (entry: Omit<JournalEntry, 'id'>) => void;
+  onSave: (entry: JournalEntry | Omit<JournalEntry, 'id'>) => void;
 }
 
 const entryColors = [
@@ -46,7 +45,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       setContent(initialContent);
       setColor(entry ? entry.color : entryColors[0]);
       
-      if (editorRef.current && editorRef.current.innerHTML !== initialContent) {
+      if (editorRef.current) {
         editorRef.current.innerHTML = initialContent;
       }
     }
@@ -77,7 +76,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
     if (entry) {
         onSave({ ...savedEntry, id: entry.id });
     } else {
-        onSave(savedEntry as JournalEntry);
+        onSave(savedEntry);
     }
     setIsOpen(false);
   };
@@ -92,8 +91,9 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       if (entry) {
         onSave({ ...entryToSave, id: entry.id });
       } else {
-        onSave(entryToSave as JournalEntry);
+        onSave(entryToSave);
       }
+      setIsOpen(false);
   }
 
   return (
@@ -123,7 +123,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     ref={editorRef}
                     id="editor"
                     contentEditable
-                    style={{ direction: 'ltr' }}
                     onInput={handleContentChange}
                     className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
                 />
