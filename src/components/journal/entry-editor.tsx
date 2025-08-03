@@ -38,25 +38,20 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   const { toast } = useToast();
 
   useEffect(() => {
-    // This effect runs when the dialog opens. It sets the initial state
-    // for the title, color, and editor content.
     if (isOpen && editorRef.current) {
       if (entry) {
-        // Editing an existing entry
         setTitle(entry.title);
         setColor(entry.color);
         editorRef.current.innerHTML = entry.content;
         
-        // Move cursor to the end of the content
         const range = document.createRange();
         const sel = window.getSelection();
         range.selectNodeContents(editorRef.current);
-        range.collapse(false); // false collapses to the end
+        range.collapse(false);
         sel?.removeAllRanges();
         sel?.addRange(range);
 
       } else {
-        // Creating a new entry
         const initialContent = '<p><br></p>';
         setTitle('');
         setColor(entryColors[0]);
@@ -110,7 +105,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
         <DialogHeader>
           <DialogTitle>{entry ? 'Edit Entry' : 'New Entry'}</DialogTitle>
           <DialogDescription>
-            {entry ? 'Make changes to your journal entry.' : "Create a new journal entry. Click save when you\\'re done."}
+            {entry ? 'Make changes to your journal entry.' : "Create a new journal entry. Click save when you're done."}
           </DialogDescription>
         </DialogHeader>
         <div className="flex-grow overflow-y-auto pr-2 space-y-4 py-4">

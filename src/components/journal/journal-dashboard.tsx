@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -10,6 +11,7 @@ import EntryEditor from './entry-editor';
 import EntryViewer from './entry-viewer';
 import { useAuth } from '../auth/auth-provider';
 import { useJournalEntries } from '@/hooks/use-journal-entries';
+import DeleteConfirmationDialog from './delete-confirmation-dialog';
 
 export default function JournalDashboard() {
   const { user } = useAuth();
@@ -25,6 +27,9 @@ export default function JournalDashboard() {
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewingEntry, setViewingEntry] = useState<JournalEntry | null>(null);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+
 
   const handleNewEntry = () => {
     setEditingEntry(null);
@@ -37,10 +42,19 @@ export default function JournalDashboard() {
     setIsEditorOpen(true);
   };
   
-  const handleDeleteEntry = (id: string) => {
-    deleteEntry(id);
+  const handleDeleteRequest = (id: string) => {
+    setDeletingEntryId(id);
+    setIsDeleteAlertOpen(true);
   };
   
+  const handleConfirmDelete = () => {
+    if (deletingEntryId) {
+      deleteEntry(deletingEntryId);
+    }
+    setIsDeleteAlertOpen(false);
+    setDeletingEntryId(null);
+  };
+
   const handleSaveEntry = (entryToSave: JournalEntry | JournalEntryData) => {
     if ('id' in entryToSave) {
       updateEntry(entryToSave as JournalEntry);
@@ -83,7 +97,7 @@ export default function JournalDashboard() {
                 entry={entry}
                 onClick={() => handleViewEntry(entry)}
                 onEdit={() => handleEditEntry(entry)}
-                onDelete={() => handleDeleteEntry(entry.id)} 
+                onDelete={() => handleDeleteRequest(entry.id)} 
               />
             ))}
           </div>
@@ -119,6 +133,11 @@ export default function JournalDashboard() {
           onEdit={() => handleEditEntry(viewingEntry)}
         />
       )}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteAlertOpen}
+        onClose={() => setIsDeleteAlertOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

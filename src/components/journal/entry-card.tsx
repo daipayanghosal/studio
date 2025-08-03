@@ -30,34 +30,26 @@ interface EntryCardProps {
 }
 
 export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCardProps) {
-  const [contentPreview, setContentPreview] = useState<string | null>(null);
-  const [formattedDate, setFormattedDate] = useState<string | null>(null);
+    const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    // This effect runs only on the client, preventing SSR errors.
-    const stripHtml = (html: string) => {
-      if (typeof window === 'undefined') return '';
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      return doc.body.textContent || "";
-    }
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
-    const toDate = (date: Date | Timestamp): Date => {
-      return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
-    }
-    
-    if (entry.content) {
-      const preview = stripHtml(entry.content).substring(0, 100);
-      setContentPreview(preview);
-    } else {
-      setContentPreview('');
-    }
 
-    if (entry.createdAt) {
-      setFormattedDate(format(toDate(entry.createdAt), "MMMM d, yyyy"));
-    } else {
-        setFormattedDate('');
-    }
-  }, [entry]);
+  const toDate = (date: Date | Timestamp): Date => {
+    return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
+  }
+
+  const stripHtml = (html: string) => {
+    if (!isClient) return '';
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || "";
+  }
+  
+  const contentPreview = stripHtml(entry.content).substring(0, 100);
+  const formattedDate = entry.createdAt ? format(toDate(entry.createdAt), "MMMM d, yyyy") : '';
+
 
   return (
     <Card 
@@ -68,7 +60,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
           <CardTitle className={cn("font-headline")}>{entry.title}</CardTitle>
-          {formattedDate !== null ? (
+          {isClient ? (
             <CardDescription>
                 {formattedDate}
             </CardDescription>
@@ -99,7 +91,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
         </DropdownMenu>
       </CardHeader>
       <CardContent className="flex-grow">
-        {contentPreview !== null ? (
+        {isClient ? (
             <p className={cn("text-sm text-muted-foreground")}>
                 {contentPreview}{entry.content && contentPreview.length >= 100 && '...'}
             </p>
