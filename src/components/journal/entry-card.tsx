@@ -30,13 +30,13 @@ interface EntryCardProps {
 }
 
 export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCardProps) {
-  const [contentPreview, setContentPreview] = useState('');
-  const [formattedDate, setFormattedDate] = useState('');
+  const [contentPreview, setContentPreview] = useState<string | null>(null);
+  const [formattedDate, setFormattedDate] = useState<string | null>(null);
 
   useEffect(() => {
     // This effect runs only on the client, preventing SSR errors.
     const stripHtml = (html: string) => {
-      // DOMParser is a browser API, so it must be used in useEffect or checked for window.
+      if (typeof window === 'undefined') return '';
       const doc = new DOMParser().parseFromString(html, 'text/html');
       return doc.body.textContent || "";
     }
@@ -48,12 +48,16 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
     if (entry.content) {
       const preview = stripHtml(entry.content).substring(0, 100);
       setContentPreview(preview);
+    } else {
+      setContentPreview('');
     }
 
     if (entry.createdAt) {
       setFormattedDate(format(toDate(entry.createdAt), "MMMM d, yyyy"));
+    } else {
+        setFormattedDate('');
     }
-  }, [entry.content, entry.createdAt]);
+  }, [entry]);
 
   return (
     <Card 
@@ -64,7 +68,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
           <CardTitle className={cn("font-headline")}>{entry.title}</CardTitle>
-          {formattedDate ? (
+          {formattedDate !== null ? (
             <CardDescription>
                 {formattedDate}
             </CardDescription>
@@ -95,9 +99,16 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
         </DropdownMenu>
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className={cn("text-sm text-muted-foreground")}>
-            {contentPreview}{entry.content && contentPreview.length >= 100 && '...'}
-        </p>
+        {contentPreview !== null ? (
+            <p className={cn("text-sm text-muted-foreground")}>
+                {contentPreview}{entry.content && contentPreview.length >= 100 && '...'}
+            </p>
+        ) : (
+            <div className="space-y-2">
+                <div className="h-4 w-full bg-muted rounded animate-pulse" />
+                <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
+            </div>
+        )}
       </CardContent>
     </Card>
   );
