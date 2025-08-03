@@ -3,7 +3,7 @@
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LoginPage() {
 
@@ -39,6 +39,11 @@ export default function LoginPage() {
             </Button>
           </div>
         </CardContent>
+        <CardFooter className="justify-center">
+            <p className="text-xs text-muted-foreground">
+                Created with 💖 by <a href="https://www.linkedin.com/in/daipayan-ghosal/" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Daipayan</a>
+            </p>
+        </CardFooter>
       </Card>
     </div>
   );
