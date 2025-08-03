@@ -40,21 +40,16 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isOpen) {
-      if (entry) {
-        setTitle(entry.title);
-        setContent(entry.content);
-        setColor(entry.color);
-        if (editorRef.current) {
-            editorRef.current.innerHTML = entry.content;
-        }
-      } else {
-        setTitle('');
-        setContent('<p><br></p>');
-        setColor(entryColors[0]);
-        if (editorRef.current) {
-            editorRef.current.innerHTML = '<p><br></p>';
-        }
+    if (isOpen && editorRef.current) {
+      const initialContent = entry ? entry.content : '<p><br></p>';
+      setTitle(entry ? entry.title : '');
+      setContent(initialContent);
+      setColor(entry ? entry.color : entryColors[0]);
+      
+      // Only set innerHTML when the dialog opens or the entry changes.
+      // This prevents re-rendering on every keystroke.
+      if (editorRef.current.innerHTML !== initialContent) {
+        editorRef.current.innerHTML = initialContent;
       }
     }
   }, [entry, isOpen]);
@@ -114,10 +109,8 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     ref={editorRef}
                     id="editor"
                     contentEditable
-                    dangerouslySetInnerHTML={{ __html: content }}
                     onInput={handleContentChange}
                     className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
-                    style={{ direction: 'ltr', textAlign: 'left' }}
                 />
               </div>
             </div>
