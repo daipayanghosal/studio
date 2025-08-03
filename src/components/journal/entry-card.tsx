@@ -41,7 +41,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
   
   const contentPreview = stripHtml(entry.content).substring(0, 100);
 
-  const toDate = (date: Date | Timestamp) => {
+  const toDate = (date: Date | Timestamp): Date => {
     return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
   }
 

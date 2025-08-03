@@ -27,7 +27,7 @@ interface EntryViewerProps {
 export default function EntryViewer({ isOpen, setIsOpen, entry, onEdit }: EntryViewerProps) {
   if (!isOpen) return null;
 
-  const toDate = (date: Date | Timestamp) => {
+  const toDate = (date: Date | Timestamp): Date => {
     return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
   }
 

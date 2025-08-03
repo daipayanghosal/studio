@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { type JournalEntry } from '@/types';
+import { type JournalEntry, type JournalEntryData } from '@/types';
 import EditorToolbar from './editor-toolbar';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
@@ -23,7 +23,7 @@ interface EntryEditorProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   entry: JournalEntry | null;
-  onSave: (entry: JournalEntry | Omit<JournalEntry, 'id'>) => void;
+  onSave: (entry: JournalEntry | JournalEntryData) => void;
 }
 
 const entryColors = [
@@ -76,12 +76,12 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
     if (entry) {
         onSave({ ...entry, ...savedEntry });
     } else {
-        const newEntry = {
+        const newEntry: JournalEntryData = {
             ...savedEntry,
             createdAt: new Date(),
             updatedAt: new Date(),
         }
-        onSave(newEntry as Omit<JournalEntry, 'id'>);
+        onSave(newEntry);
     }
     setIsOpen(false);
   };

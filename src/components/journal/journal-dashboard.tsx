@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { UserButton } from '@/components/auth/user-button';
-import { type JournalEntry } from '@/types';
+import { type JournalEntry, type JournalEntryData } from '@/types';
 import EntryCard from './entry-card';
 import EntryEditor from './entry-editor';
 import EntryViewer from './entry-viewer';
@@ -42,11 +42,11 @@ export default function JournalDashboard() {
     deleteEntry(id);
   };
   
-  const handleSaveEntry = (entryToSave: JournalEntry | Omit<JournalEntry, 'id'>) => {
+  const handleSaveEntry = (entryToSave: JournalEntry | JournalEntryData) => {
     if ('id' in entryToSave) {
-      updateEntry(entryToSave);
+      updateEntry(entryToSave as JournalEntry);
     } else {
-      addEntry(entryToSave);
+      addEntry(entryToSave as JournalEntryData);
     }
   };
 
