@@ -7,12 +7,12 @@ import { getFirestore } from "firebase/firestore";
 // For more information on how to get this, visit:
 // https://firebase.google.com/docs/web/setup#available-libraries
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB1E5IAVYmFsClrFx4s5k65Iv8HnJvJxIY",
+  authDomain: "chronocanvas-nakny.firebaseapp.com",
+  projectId: "chronocanvas-nakny",
+  storageBucket: "chronocanvas-nakny.firebasestorage.app",
+  messagingSenderId: "1092336481608",
+  appId: "1:1092336481608:web:6806ada9653c2b8b602f7d"
 };
 
 // Initialize Firebase
