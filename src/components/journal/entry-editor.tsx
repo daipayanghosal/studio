@@ -38,14 +38,20 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   const { toast } = useToast();
 
   useEffect(() => {
+    // This effect runs when the dialog opens. It sets the initial state
+    // for the title, color, and editor content.
     if (isOpen) {
       if (entry) {
+        // Editing an existing entry
         setTitle(entry.title);
         setColor(entry.color);
         if (editorRef.current) {
+          // Set the initial content only once.
+          // The editor will manage its own state after this.
           editorRef.current.innerHTML = entry.content;
         }
       } else {
+        // Creating a new entry
         const initialContent = '<p><br></p>';
         setTitle('');
         setColor(entryColors[0]);
