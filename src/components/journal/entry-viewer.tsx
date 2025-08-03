@@ -29,13 +29,13 @@ export default function EntryViewer({ isOpen, setIsOpen, entry, onEdit }: EntryV
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className={cn("font-headline font-bengali text-3xl")}>{entry.title}</DialogTitle>
+          <DialogTitle className={cn("font-headline text-3xl")}>{entry.title}</DialogTitle>
           <DialogDescription>
             {format(entry.createdAt, "MMMM d, yyyy 'at' h:mm a")}
           </DialogDescription>
         </DialogHeader>
         <div 
-          className="flex-grow overflow-y-auto pr-4 -mx-4 px-6 prose dark:prose-invert max-w-none font-bengali whitespace-pre-wrap"
+          className="flex-grow overflow-y-auto pr-4 -mx-4 px-6 prose dark:prose-invert max-w-none whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ __html: entry.content }}
         />
         <DialogFooter className="mt-4">

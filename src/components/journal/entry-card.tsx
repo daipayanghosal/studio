@@ -44,7 +44,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
     >
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
-          <CardTitle className={cn("font-headline font-bengali")}>{entry.title}</CardTitle>
+          <CardTitle className={cn("font-headline")}>{entry.title}</CardTitle>
           <CardDescription>
             {format(entry.createdAt, "MMMM d, yyyy")}
           </CardDescription>
@@ -74,7 +74,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
         </DropdownMenu>
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className={cn("text-sm text-muted-foreground font-bengali")}>
+        <p className={cn("text-sm text-muted-foreground")}>
             {contentPreview}{contentPreview.length === 100 && '...'}
         </p>
       </CardContent>

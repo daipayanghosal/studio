@@ -103,7 +103,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="A new day's thoughts"
-                    className="font-bengali"
                 />
             </div>
             <div className="space-y-2">
@@ -116,7 +115,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     contentEditable
                     dangerouslySetInnerHTML={{ __html: content }}
                     onInput={handleContentChange}
-                    className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto font-bengali"
+                    className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
                 />
               </div>
             </div>
