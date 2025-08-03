@@ -7,6 +7,7 @@ import { UserButton } from '@/components/auth/user-button';
 import { type JournalEntry } from '@/types';
 import EntryCard from './entry-card';
 import EntryEditor from './entry-editor';
+import EntryViewer from './entry-viewer';
 
 const initialEntries: JournalEntry[] = [
     {
@@ -40,6 +41,8 @@ export default function JournalDashboard() {
   const [entries, setEntries] = useState<JournalEntry[]>(initialEntries);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewingEntry, setViewingEntry] = useState<JournalEntry | null>(null);
 
   const handleNewEntry = () => {
     setEditingEntry(null);
@@ -48,6 +51,7 @@ export default function JournalDashboard() {
   
   const handleEditEntry = (entry: JournalEntry) => {
     setEditingEntry(entry);
+    setIsViewerOpen(false); // Close viewer if open
     setIsEditorOpen(true);
   };
   
@@ -62,6 +66,11 @@ export default function JournalDashboard() {
       setEntries([entryToSave, ...entries]);
     }
   };
+
+  const handleViewEntry = (entry: JournalEntry) => {
+    setViewingEntry(entry);
+    setIsViewerOpen(true);
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,6 +94,7 @@ export default function JournalDashboard() {
               <EntryCard 
                 key={entry.id} 
                 entry={entry}
+                onClick={() => handleViewEntry(entry)}
                 onEdit={() => handleEditEntry(entry)}
                 onDelete={() => handleDeleteEntry(entry.id)} 
               />
@@ -113,6 +123,15 @@ export default function JournalDashboard() {
         entry={editingEntry}
         onSave={handleSaveEntry}
       />
+      
+      {viewingEntry && (
+        <EntryViewer
+          isOpen={isViewerOpen}
+          setIsOpen={setIsViewerOpen}
+          entry={viewingEntry}
+          onEdit={() => handleEditEntry(viewingEntry)}
+        />
+      )}
     </div>
   );
 }

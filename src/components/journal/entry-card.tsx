@@ -22,11 +22,12 @@ import { cn } from "@/lib/utils";
 
 interface EntryCardProps {
   entry: JournalEntry;
+  onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export default function EntryCard({ entry, onEdit, onDelete }: EntryCardProps) {
+export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCardProps) {
     
   const stripHtml = (html: string) => {
     const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -37,8 +38,9 @@ export default function EntryCard({ entry, onEdit, onDelete }: EntryCardProps) {
 
   return (
     <Card 
-      className="flex flex-col overflow-hidden transition-all hover:shadow-xl"
+      className="flex flex-col overflow-hidden transition-all hover:shadow-xl cursor-pointer"
       style={{ borderTop: `4px solid ${entry.color}` }}
+      onClick={onClick}
     >
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
@@ -49,12 +51,17 @@ export default function EntryCard({ entry, onEdit, onDelete }: EntryCardProps) {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
               <MoreHorizontal className="h-4 w-4" />
               <span className="sr-only">More options</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
             <DropdownMenuItem onClick={onEdit}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
