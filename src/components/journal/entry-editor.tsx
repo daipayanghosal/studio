@@ -117,7 +117,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     dangerouslySetInnerHTML={{ __html: content }}
                     onInput={handleContentChange}
                     className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto font-bengali"
-                    style={{ WebkitUserModify: 'read-write-plaintext-only' }}
                 />
               </div>
             </div>

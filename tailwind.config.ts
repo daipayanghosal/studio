@@ -10,10 +10,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        body: ['Inter', '"Noto Serif Bengali"', 'sans-serif'],
+        headline: ['Inter', '"Noto Serif Bengali"', 'sans-serif'],
         code: ['monospace'],
-        bengali: ['"Noto Serif Bengali"', 'sans-serif'],
+        bengali: ['"Noto Serif Bengali"', 'Inter', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
