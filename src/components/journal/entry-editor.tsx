@@ -39,12 +39,19 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isOpen) {
-      const initialContent = entry ? entry.content : '<p><br></p>';
-      setTitle(entry ? entry.title : '');
+    if (isOpen && entry) {
+      setTitle(entry.title);
+      setContent(entry.content);
+      setColor(entry.color);
+      if (editorRef.current) {
+        editorRef.current.innerHTML = entry.content;
+      }
+    } else if (isOpen) {
+      // Reset for new entry
+      const initialContent = '<p><br></p>';
+      setTitle('');
       setContent(initialContent);
-      setColor(entry ? entry.color : entryColors[0]);
-      
+      setColor(entryColors[0]);
       if (editorRef.current) {
         editorRef.current.innerHTML = initialContent;
       }
@@ -67,17 +74,22 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       return;
     }
 
-    const savedEntry: Omit<JournalEntry, 'id' | 'createdAt' | 'updatedAt'> = {
+    const savedEntryData: Omit<JournalEntry, 'id' | 'createdAt' | 'updatedAt'> = {
       title,
       content,
       color,
     };
-
+    
     if (entry) {
-        onSave({ ...entry, ...savedEntry });
+        const updatedEntry: JournalEntry = {
+            ...entry,
+            ...savedEntryData,
+            updatedAt: new Date(),
+        }
+        onSave(updatedEntry);
     } else {
         const newEntry: JournalEntryData = {
-            ...savedEntry,
+            ...savedEntryData,
             createdAt: new Date(),
             updatedAt: new Date(),
         }

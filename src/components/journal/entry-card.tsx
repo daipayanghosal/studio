@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from 'react';
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import type { Timestamp } from "firebase/firestore";
@@ -30,18 +31,19 @@ interface EntryCardProps {
 }
 
 export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCardProps) {
-    
-  const stripHtml = (html: string) => {
-    if (typeof window !== 'undefined') {
+  const [contentPreview, setContentPreview] = useState('');
+
+  useEffect(() => {
+    const stripHtml = (html: string) => {
+      // This function now only runs on the client, so we can safely use DOMParser
       const doc = new DOMParser().parseFromString(html, 'text/html');
       return doc.body.textContent || "";
     }
-    // Basic fallback for server-side rendering
-    return html.replace(/<[^>]*>?/gm, '');
-  }
+    
+    const preview = stripHtml(entry.content).substring(0, 100);
+    setContentPreview(preview);
+  }, [entry.content]);
   
-  const contentPreview = stripHtml(entry.content).substring(0, 100);
-
   const toDate = (date: Date | Timestamp): Date => {
     return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
   }
