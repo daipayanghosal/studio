@@ -24,7 +24,7 @@ interface EntryEditorProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   entry: JournalEntry | null;
-  onSave: (entry: JournalEntry) => void;
+  onSave: (entry: Omit<JournalEntry, 'id'>) => void;
 }
 
 const entryColors = [
@@ -40,15 +40,13 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isOpen && editorRef.current) {
+    if (isOpen) {
       const initialContent = entry ? entry.content : '<p><br></p>';
       setTitle(entry ? entry.title : '');
       setContent(initialContent);
       setColor(entry ? entry.color : entryColors[0]);
       
-      // Only set innerHTML when the dialog opens or the entry changes.
-      // This prevents re-rendering on every keystroke.
-      if (editorRef.current.innerHTML !== initialContent) {
+      if (editorRef.current && editorRef.current.innerHTML !== initialContent) {
         editorRef.current.innerHTML = initialContent;
       }
     }
@@ -70,17 +68,33 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       return;
     }
 
-    const savedEntry: JournalEntry = {
-      id: entry ? entry.id : new Date().toISOString(),
+    const savedEntry: Omit<JournalEntry, 'id'> = {
       title,
       content,
       color,
-      createdAt: entry ? entry.createdAt : new Date(),
-      updatedAt: new Date(),
     };
-    onSave(savedEntry);
+
+    if (entry) {
+        onSave({ ...savedEntry, id: entry.id });
+    } else {
+        onSave(savedEntry as JournalEntry);
+    }
     setIsOpen(false);
   };
+
+  const handleSaveWrapper = () => {
+      const entryToSave: Omit<JournalEntry, 'id'> = {
+        title: title,
+        content: content,
+        color: color,
+      };
+
+      if (entry) {
+        onSave({ ...entryToSave, id: entry.id });
+      } else {
+        onSave(entryToSave as JournalEntry);
+      }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -109,6 +123,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     ref={editorRef}
                     id="editor"
                     contentEditable
+                    style={{ direction: 'ltr' }}
                     onInput={handleContentChange}
                     className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
                 />
@@ -138,7 +153,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                 Cancel
             </Button>
           </DialogClose>
-          <Button type="button" onClick={handleSave}>
+          <Button type="button" onClick={handleSaveWrapper}>
             Save
           </Button>
         </DialogFooter>

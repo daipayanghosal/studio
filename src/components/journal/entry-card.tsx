@@ -17,9 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { type JournalEntry } from "@/types";
-import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
-import { Timestamp } from "firebase/firestore";
 
 interface EntryCardProps {
   entry: JournalEntry;
@@ -37,13 +35,6 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
     const doc = new DOMParser().parseFromString(html, 'text/html');
     return doc.body.textContent || "";
   }
-
-  const getDate = (date: Date | Timestamp) => {
-    if (date instanceof Timestamp) {
-      return date.toDate();
-    }
-    return date;
-  }
   
   const contentPreview = stripHtml(entry.content).substring(0, 100);
 
@@ -56,9 +47,6 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
           <CardTitle className={cn("font-headline")}>{entry.title}</CardTitle>
-          <CardDescription>
-            {format(getDate(entry.createdAt), "MMMM d, yyyy")}
-          </CardDescription>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
