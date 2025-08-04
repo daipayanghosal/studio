@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
+  DialogHeader,
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       setIsLoading(true);
       if (entry) {
         setTitle(entry.title);
-        setContent(entry.content); // Set the content state for initial render
+        setContent(entry.content);
         setColor(entry.color);
       } else {
         setTitle('');
@@ -106,6 +106,12 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                     {isLoading ? 'Saving...' : 'Save'}
                 </Button>
+                <DialogClose asChild>
+                    <Button type="button" variant="ghost">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Close</span>
+                    </Button>
+                </DialogClose>
             </div>
         </div>
 
