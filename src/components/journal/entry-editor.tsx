@@ -34,7 +34,6 @@ const entryColors = [
 
 export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryEditorProps) {
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
   const [color, setColor] = useState(entryColors[0]);
   const [isLoading, setIsLoading] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -45,13 +44,15 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       if (entry) {
         setIsLoading(true);
         setTitle(entry.title);
-        setContent(entry.content);
         setColor(entry.color);
+        // Directly set the content of the editor when it loads
+        if (editorRef.current) {
+          editorRef.current.innerHTML = entry.content;
+        }
         setIsLoading(false);
       } else {
         // Reset for new entry
         setTitle('');
-        setContent('');
         setColor(entryColors[0]);
         if (editorRef.current) {
           editorRef.current.innerHTML = '';
@@ -60,13 +61,9 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       }
     }
   }, [entry, isOpen]);
-  
-  const getContent = () => {
-    return editorRef.current?.innerHTML || '';
-  };
 
   const handleSave = () => {
-    const currentContent = getContent();
+    const currentContent = editorRef.current?.innerHTML || '';
     if (!title.trim()) {
       toast({
         title: "Title is required",
@@ -98,11 +95,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
         onSave(newEntry);
     }
     setIsOpen(false);
-  };
-  
-  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
-    // This function can be used if we need to sync state on input,
-    // but for now, we read directly from the ref on save to avoid cursor jumps.
   };
 
   return (
@@ -141,8 +133,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                         contentEditable
                         suppressContentEditableWarning={true}
                         className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
-                        onInput={handleInput}
-                        dangerouslySetInnerHTML={{ __html: content }}
                     />
                   </div>
                 )}
