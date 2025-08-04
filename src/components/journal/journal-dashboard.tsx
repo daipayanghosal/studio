@@ -75,7 +75,7 @@ export default function JournalDashboard() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <Image 
-              src="https://placehold.co/40x40.png" 
+              src="/appicon.png" 
               alt="ChronoCanvas Logo" 
               width={40} 
               height={40} 

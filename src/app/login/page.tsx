@@ -24,7 +24,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center items-center">
           <Image 
-            src="https://placehold.co/80x80.png" 
+            src="/appicon.png" 
             alt="ChronoCanvas Logo" 
             width={80} 
             height={80} 
