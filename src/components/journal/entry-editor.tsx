@@ -43,16 +43,14 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
     if (isOpen) {
       if (entry) {
         setIsLoading(true);
-        // Simulate a short delay to allow loading animation to be seen
-        setTimeout(() => {
-          setTitle(entry.title);
-          setColor(entry.color);
-          if (editorRef.current) {
-            editorRef.current.innerHTML = entry.content;
-          }
-          setIsLoading(false);
-        }, 150); 
+        setTitle(entry.title);
+        setColor(entry.color);
+        if (editorRef.current) {
+          editorRef.current.innerHTML = entry.content;
+        }
+        setIsLoading(false);
       } else {
+        // Reset for new entry
         setTitle('');
         setColor(entryColors[0]);
         if (editorRef.current) {
@@ -136,6 +134,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                         ref={editorRef}
                         id="editor"
                         contentEditable
+                        suppressContentEditableWarning={true}
                         className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
                     />
                   </div>
