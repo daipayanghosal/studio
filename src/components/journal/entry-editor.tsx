@@ -5,16 +5,12 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { type JournalEntry, type JournalEntryData } from '@/types';
 import EditorToolbar from './editor-toolbar';
 import { useToast } from '@/hooks/use-toast';
-import { Save, X, Palette } from 'lucide-react';
+import { Save, X, Palette, Loader } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
 
@@ -27,7 +23,7 @@ interface EntryEditorProps {
 
 const entryColors = [
   '#77BEF0', '#FFCB61', '#FF894F', '#EA5B6F', '#A8D0E6',
-  '#FADADD', '#E6E6FA', '#FFDDC1', '#D4F0F0', '#FEE1E8',
+  '#FADADD', '#E6E6FA', '#FFDDC1',
 ];
 
 export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryEditorProps) {
@@ -38,22 +34,12 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const setCursorToEnd = (element: HTMLElement) => {
-    const range = document.createRange();
-    const selection = window.getSelection();
-    range.selectNodeContents(element);
-    range.collapse(false);
-    if (selection) {
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-  };
-
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
       if (entry) {
         setTitle(entry.title);
+        // This is the key change: update the content state
         setContent(entry.content);
         setColor(entry.color);
       } else {
@@ -64,15 +50,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       setIsLoading(false);
     }
   }, [entry, isOpen]);
-
-  useEffect(() => {
-    if (!isLoading && editorRef.current) {
-        editorRef.current.innerHTML = content;
-        if (entry) {
-            setCursorToEnd(editorRef.current);
-        }
-    }
-  }, [isLoading, content, entry]);
 
 
   const handleSave = () => {
@@ -110,6 +87,11 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
     setIsOpen(false);
   };
 
+  const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
+    // We don't update state here to prevent cursor jumps.
+    // The save function will read directly from the ref.
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="w-full h-full max-w-full max-h-full sm:max-w-4xl sm:max-h-[90vh] flex flex-col p-0 gap-0">
@@ -120,7 +102,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
             </DialogHeader>
             <div className="flex items-center gap-2">
                  <Button type="button" onClick={handleSave} disabled={isLoading}>
-                    <Save className="mr-2 h-4 w-4" />
+                    {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                     {isLoading ? 'Saving...' : 'Save'}
                 </Button>
                 <DialogClose asChild>
@@ -157,9 +139,11 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                             ref={editorRef}
                             id="editor"
                             contentEditable
+                            onInput={handleContentChange}
                             suppressContentEditableWarning={true}
                             className="prose dark:prose-invert max-w-none min-h-[40vh] p-4 focus:outline-none rounded-b-md border-x border-b border-input"
                             style={{borderColor: color}}
+                            dangerouslySetInnerHTML={{ __html: content }}
                         />
                     </div>
                 </>
