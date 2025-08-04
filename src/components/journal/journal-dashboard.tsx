@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { UserButton } from '@/components/auth/user-button';
@@ -72,7 +73,19 @@ export default function JournalDashboard() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 font-headline">ChronoCanvas</h1>
+          <div className="flex items-center gap-2">
+            <Image 
+              src="https://placehold.co/40x40.png" 
+              alt="ChronoCanvas Logo" 
+              width={40} 
+              height={40} 
+              className="rounded-md"
+              data-ai-hint="logo"
+            />
+          </div>
+          <div className="flex-1 text-center">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 font-headline">ChronoCanvas</h1>
+          </div>
           <div className="flex items-center gap-4">
             <Button onClick={handleNewEntry} className="hidden sm:flex">
               <PlusCircle className="mr-2 h-4 w-4" />

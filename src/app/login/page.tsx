@@ -1,5 +1,7 @@
+
 "use client";
 
+import Image from "next/image";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -20,7 +22,15 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center items-center">
+          <Image 
+            src="https://placehold.co/80x80.png" 
+            alt="ChronoCanvas Logo" 
+            width={80} 
+            height={80} 
+            className="mb-4 rounded-full"
+            data-ai-hint="logo"
+          />
           <CardTitle className="text-3xl font-bold font-headline">ChronoCanvas</CardTitle>
           <CardDescription>Your personal space to reflect and grow.</CardDescription>
         </CardHeader>
