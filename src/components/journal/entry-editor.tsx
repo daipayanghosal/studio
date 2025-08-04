@@ -26,12 +26,13 @@ interface EntryEditorProps {
 }
 
 const entryColors = [
-  '#A8D0E6', '#FADADD', '#E6E6FA', '#FFDDC1', '#D4F0F0',
-  '#FEE1E8', '#E0BBE4', '#D2F8B0', '#FEEAA1', '#B9E2A0',
+  '#77BEF0', '#FFCB61', '#FF894F', '#EA5B6F', '#A8D0E6',
+  '#FADADD', '#E6E6FA', '#FFDDC1', '#D4F0F0', '#FEE1E8',
 ];
 
 export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryEditorProps) {
   const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [color, setColor] = useState(entryColors[0]);
   const [isLoading, setIsLoading] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -53,21 +54,25 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       setIsLoading(true);
       if (entry) {
         setTitle(entry.title);
+        setContent(entry.content);
         setColor(entry.color);
-        if (editorRef.current) {
-          editorRef.current.innerHTML = entry.content;
-          setCursorToEnd(editorRef.current);
-        }
       } else {
         setTitle('');
+        setContent('');
         setColor(entryColors[0]);
-        if (editorRef.current) {
-          editorRef.current.innerHTML = '';
-        }
       }
       setIsLoading(false);
     }
   }, [entry, isOpen]);
+
+  useEffect(() => {
+    if (!isLoading && editorRef.current) {
+        editorRef.current.innerHTML = content;
+        if (entry) {
+            setCursorToEnd(editorRef.current);
+        }
+    }
+  }, [isLoading, content, entry]);
 
 
   const handleSave = () => {
