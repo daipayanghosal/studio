@@ -13,6 +13,7 @@ Before using ChronoCanvas, you need to configure your environment variables:
 
 2. Update the `.env.local` file with your actual values:
 
+
 ### Firebase Configuration
 
 To set up Firebase:
