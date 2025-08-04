@@ -18,6 +18,7 @@ import { type JournalEntry, type JournalEntryData } from '@/types';
 import EditorToolbar from './editor-toolbar';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '../ui/skeleton';
 
 interface EntryEditorProps {
   isOpen: boolean;
@@ -34,28 +35,30 @@ const entryColors = [
 export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryEditorProps) {
   const [title, setTitle] = useState('');
   const [color, setColor] = useState(entryColors[0]);
+  const [isLoading, setIsLoading] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isOpen && editorRef.current) {
+    if (isOpen) {
       if (entry) {
-        setTitle(entry.title);
-        setColor(entry.color);
-        editorRef.current.innerHTML = entry.content;
-        
-        const range = document.createRange();
-        const sel = window.getSelection();
-        range.selectNodeContents(editorRef.current);
-        range.collapse(false);
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-
+        setIsLoading(true);
+        // Simulate a short delay to allow loading animation to be seen
+        setTimeout(() => {
+          setTitle(entry.title);
+          setColor(entry.color);
+          if (editorRef.current) {
+            editorRef.current.innerHTML = entry.content;
+          }
+          setIsLoading(false);
+        }, 150); 
       } else {
-        const initialContent = '<p><br></p>';
         setTitle('');
         setColor(entryColors[0]);
-        editorRef.current.innerHTML = initialContent;
+        if (editorRef.current) {
+          editorRef.current.innerHTML = '';
+        }
+        setIsLoading(false);
       }
     }
   }, [entry, isOpen]);
@@ -111,24 +114,32 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
         <div className="flex-grow overflow-y-auto pr-2 space-y-4 py-4">
             <div className="space-y-2">
                 <Label htmlFor="title">Title</Label>
-                <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="A new day's thoughts"
-                />
+                {isLoading ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : (
+                  <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="A new day's thoughts"
+                  />
+                )}
             </div>
             <div className="space-y-2">
               <Label>Content</Label>
-              <div className="rounded-md border border-input">
-                <EditorToolbar editorRef={editorRef} />
-                <div
-                    ref={editorRef}
-                    id="editor"
-                    contentEditable
-                    className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
-                />
-              </div>
+                {isLoading ? (
+                  <Skeleton className="h-[248px] w-full rounded-md" />
+                ) : (
+                  <div className="rounded-md border border-input">
+                    <EditorToolbar editorRef={editorRef} />
+                    <div
+                        ref={editorRef}
+                        id="editor"
+                        contentEditable
+                        className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
+                    />
+                  </div>
+                )}
             </div>
             <div className="space-y-2">
                 <Label>Entry Color</Label>
@@ -154,8 +165,8 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                 Cancel
             </Button>
           </DialogClose>
-          <Button type="button" onClick={handleSave}>
-            Save
+          <Button type="button" onClick={handleSave} disabled={isLoading}>
+            {isLoading ? 'Loading...' : 'Save'}
           </Button>
         </DialogFooter>
       </DialogContent>
