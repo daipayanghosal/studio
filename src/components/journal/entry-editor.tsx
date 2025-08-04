@@ -25,8 +25,7 @@ interface EntryEditorProps {
 }
 
 const entryColors = [
-  '#77BEF0', '#FFCB61', '#FF894F', '#EA5B6F', '#A8D0E6',
-  '#FADADD', '#E6E6FA', '#FFDDC1',
+  '#77BEF0', '#FFCB61', '#FF894F', '#EA5B6F', '#a8d0e6', '#f7cac9', '#9de2d0', '#e6e6fa'
 ];
 
 export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryEditorProps) {
@@ -42,7 +41,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       setIsLoading(true);
       if (entry) {
         setTitle(entry.title);
-        setContent(entry.content); // Set the content state
+        setContent(entry.content); // Set the content state for initial render
         setColor(entry.color);
       } else {
         setTitle('');
@@ -107,12 +106,6 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                     {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                     {isLoading ? 'Saving...' : 'Save'}
                 </Button>
-                <DialogClose asChild>
-                    <Button type="button" variant="ghost" size="icon">
-                        <X className="h-5 w-5" />
-                        <span className="sr-only">Close</span>
-                    </Button>
-                </DialogClose>
             </div>
         </div>
 
