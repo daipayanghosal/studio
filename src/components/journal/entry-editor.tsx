@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
@@ -6,8 +5,8 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  DialogHeader,
   DialogClose,
+  DialogHeader,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { type JournalEntry, type JournalEntryData } from '@/types';
@@ -25,8 +24,8 @@ interface EntryEditorProps {
 }
 
 const entryColors = [
-  '#77BEF0', '#FFCB61', '#FF894F', '#EA5B6F', '#a8d0e6', '#f7cac9', '#9de2d0', '#e6e6fa'
-];
+    '#77BEF0', '#FFCB61', '#FF894F', '#EA5B6F'
+  ];
 
 export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryEditorProps) {
   const [title, setTitle] = useState('');
@@ -34,6 +33,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   const [color, setColor] = useState(entryColors[0]);
   const [isLoading, setIsLoading] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -41,10 +41,19 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       setIsLoading(true);
       if (entry) {
         setTitle(entry.title);
+        // Use a separate ref for initial content to avoid re-render issues
+        contentRef.current = entry.content; 
+        if (editorRef.current) {
+          editorRef.current.innerHTML = entry.content;
+        }
         setContent(entry.content);
         setColor(entry.color);
       } else {
         setTitle('');
+        contentRef.current = '';
+        if (editorRef.current) {
+          editorRef.current.innerHTML = '';
+        }
         setContent('');
         setColor(entryColors[0]);
       }
@@ -89,9 +98,12 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   };
 
   const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
-    // We don't update state here to prevent cursor jumps.
-    // The save function will read directly from the ref.
+     if (editorRef.current) {
+      contentRef.current = editorRef.current.innerHTML;
+    }
   };
+
+  const isEditorDisabled = !title.trim();
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -134,18 +146,26 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
                         />
                     </div>
 
-                    <div className="flex-grow">
+                    <div className="flex-grow relative">
                         <EditorToolbar editorRef={editorRef} />
                         <div
                             ref={editorRef}
                             id="editor"
-                            contentEditable
+                            contentEditable={!isEditorDisabled}
                             onInput={handleContentChange}
                             suppressContentEditableWarning={true}
-                            className="prose dark:prose-invert max-w-none min-h-[40vh] p-4 focus:outline-none rounded-b-md border-x border-b border-input"
+                            className={cn(
+                                "prose dark:prose-invert max-w-none min-h-[40vh] p-4 focus:outline-none rounded-b-md border-x border-b border-input relative",
+                                isEditorDisabled && "bg-muted/50 cursor-not-allowed"
+                            )}
                             style={{borderColor: color}}
                             dangerouslySetInnerHTML={{ __html: content }}
                         />
+                         {isEditorDisabled && (
+                          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground select-none pointer-events-none">
+                            Enter a title to start writing
+                          </div>
+                        )}
                     </div>
                 </>
             )}

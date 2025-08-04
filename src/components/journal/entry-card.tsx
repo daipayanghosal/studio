@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { type JournalEntry } from "@/types";
 import { cn } from "@/lib/utils";
+import { Skeleton } from '../ui/skeleton';
 
 interface EntryCardProps {
   entry: JournalEntry;
@@ -31,23 +32,22 @@ interface EntryCardProps {
 
 export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCardProps) {
     const [isClient, setIsClient] = useState(false);
+    const [contentPreview, setContentPreview] = useState('');
 
     useEffect(() => {
         setIsClient(true);
-    }, []);
+        if (entry.content) {
+            const doc = new DOMParser().parseFromString(entry.content, 'text/html');
+            const preview = doc.body.textContent || "";
+            setContentPreview(preview.substring(0, 100));
+        }
+    }, [entry.content]);
 
 
   const toDate = (date: Date | Timestamp): Date => {
     return (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : (date as Date);
   }
-
-  const stripHtml = (html: string) => {
-    if (!isClient) return '';
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || "";
-  }
   
-  const contentPreview = stripHtml(entry.content).substring(0, 100);
   const formattedDate = entry.createdAt ? format(toDate(entry.createdAt), "MMMM d, yyyy") : '';
 
 
@@ -64,7 +64,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
             <CardDescription>
                 {formattedDate}
             </CardDescription>
-          ) : <div className="h-5 w-24 bg-muted rounded animate-pulse" />}
+          ) : <Skeleton className="h-5 w-24" />}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -97,8 +97,8 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }: EntryCar
             </p>
         ) : (
             <div className="space-y-2">
-                <div className="h-4 w-full bg-muted rounded animate-pulse" />
-                <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
             </div>
         )}
       </CardContent>
