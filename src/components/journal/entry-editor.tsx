@@ -1,10 +1,13 @@
 
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { type JournalEntry, type JournalEntryData } from '@/types';
@@ -39,8 +42,7 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
       setIsLoading(true);
       if (entry) {
         setTitle(entry.title);
-        // This is the key change: update the content state
-        setContent(entry.content);
+        setContent(entry.content); // Set the content state
         setColor(entry.color);
       } else {
         setTitle('');
