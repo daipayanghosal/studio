@@ -1,23 +1,21 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { type JournalEntry, type JournalEntryData } from '@/types';
 import EditorToolbar from './editor-toolbar';
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
+import { Save, X, Palette } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
 
 interface EntryEditorProps {
@@ -39,28 +37,38 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
   const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  const setCursorToEnd = (element: HTMLElement) => {
+    const range = document.createRange();
+    const selection = window.getSelection();
+    range.selectNodeContents(element);
+    range.collapse(false);
+    if (selection) {
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
+      setIsLoading(true);
       if (entry) {
-        setIsLoading(true);
         setTitle(entry.title);
         setColor(entry.color);
-        // Directly set the content of the editor when it loads
         if (editorRef.current) {
           editorRef.current.innerHTML = entry.content;
+          setCursorToEnd(editorRef.current);
         }
-        setIsLoading(false);
       } else {
-        // Reset for new entry
         setTitle('');
         setColor(entryColors[0]);
         if (editorRef.current) {
           editorRef.current.innerHTML = '';
         }
-        setIsLoading(false);
       }
+      setIsLoading(false);
     }
   }, [entry, isOpen]);
+
 
   const handleSave = () => {
     const currentContent = editorRef.current?.innerHTML || '';
@@ -99,72 +107,80 @@ export default function EntryEditor({ isOpen, setIsOpen, entry, onSave }: EntryE
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>{entry ? 'Edit Entry' : 'New Entry'}</DialogTitle>
-          <DialogDescription>
-            {entry ? 'Make changes to your journal entry.' : "Create a new journal entry. Click save when you're done."}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex-grow overflow-y-auto pr-2 space-y-4 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                {isLoading ? (
-                  <Skeleton className="h-10 w-full" />
-                ) : (
-                  <Input
-                      id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="A new day's thoughts"
-                  />
-                )}
-            </div>
-            <div className="space-y-2">
-              <Label>Content</Label>
-                {isLoading ? (
-                  <Skeleton className="h-[248px] w-full rounded-md" />
-                ) : (
-                  <div className="rounded-md border border-input">
-                    <EditorToolbar editorRef={editorRef} />
-                    <div
-                        ref={editorRef}
-                        id="editor"
-                        contentEditable
-                        suppressContentEditableWarning={true}
-                        className="prose dark:prose-invert max-w-none min-h-[200px] p-4 focus:outline-none overflow-y-auto"
-                    />
-                  </div>
-                )}
-            </div>
-            <div className="space-y-2">
-                <Label>Entry Color</Label>
-                 <RadioGroup value={color} onValueChange={setColor} className="flex flex-wrap gap-2 pt-2">
-                    {entryColors.map((c) => (
-                        <RadioGroupItem
-                            key={c}
-                            value={c}
-                            id={`color-${c}`}
-                            className="h-8 w-8 rounded-full border-2"
-                            style={{ backgroundColor: c, borderColor: c === color ? 'hsl(var(--ring))' : 'transparent' }}
-                            aria-label={c}
-                        >
-                            <span className="sr-only">{c}</span>
-                        </RadioGroupItem>
-                    ))}
-                </RadioGroup>
+      <DialogContent className="w-full h-full max-w-full max-h-full sm:max-w-4xl sm:max-h-[90vh] flex flex-col p-0 gap-0">
+        <div className="flex items-center justify-between p-4 border-b">
+            <DialogHeader className="flex-row items-center gap-4">
+              <Palette className="h-6 w-6 text-muted-foreground" />
+              <DialogTitle className="text-lg font-medium">{entry ? 'Edit Entry' : 'New Entry'}</DialogTitle>
+            </DialogHeader>
+            <div className="flex items-center gap-2">
+                 <Button type="button" onClick={handleSave} disabled={isLoading}>
+                    <Save className="mr-2 h-4 w-4" />
+                    {isLoading ? 'Saving...' : 'Save'}
+                </Button>
+                <DialogClose asChild>
+                    <Button type="button" variant="ghost" size="icon">
+                        <X className="h-5 w-5" />
+                        <span className="sr-only">Close</span>
+                    </Button>
+                </DialogClose>
             </div>
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="outline">
-                Cancel
-            </Button>
-          </DialogClose>
-          <Button type="button" onClick={handleSave} disabled={isLoading}>
-            {isLoading ? 'Loading...' : 'Save'}
-          </Button>
-        </DialogFooter>
+
+        <div className="flex-grow flex flex-col md:flex-row min-h-0">
+          <main className="flex-grow flex flex-col p-4 md:p-8 overflow-y-auto">
+            {isLoading ? (
+                <div className='space-y-6'>
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            ) : (
+                <>
+                    <div className="mb-6">
+                        <input
+                            id="title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Your Title Here..."
+                            className="text-3xl md:text-4xl font-extrabold tracking-tight w-full bg-transparent focus:outline-none"
+                        />
+                    </div>
+
+                    <div className="flex-grow">
+                        <EditorToolbar editorRef={editorRef} />
+                        <div
+                            ref={editorRef}
+                            id="editor"
+                            contentEditable
+                            suppressContentEditableWarning={true}
+                            className="prose dark:prose-invert max-w-none min-h-[40vh] p-4 focus:outline-none rounded-b-md border-x border-b border-input"
+                            style={{borderColor: color}}
+                        />
+                    </div>
+                </>
+            )}
+          </main>
+
+          <aside className="w-full md:w-64 border-t md:border-t-0 md:border-l bg-muted/50 p-4 space-y-4 overflow-y-auto">
+             <h3 className="font-semibold text-foreground">Entry Color</h3>
+             <div className="grid grid-cols-5 md:grid-cols-4 gap-2">
+                {entryColors.map((c) => (
+                    <button
+                        key={c}
+                        type="button"
+                        onClick={() => setColor(c)}
+                        className={cn(
+                            "h-10 w-full rounded-md border-2 transition-all",
+                            color === c ? 'ring-2 ring-ring ring-offset-2 ring-offset-background' : 'border-transparent'
+                        )}
+                        style={{ backgroundColor: c }}
+                        aria-label={`Set color to ${c}`}
+                    />
+                ))}
+            </div>
+          </aside>
+        </div>
+
       </DialogContent>
     </Dialog>
   );
