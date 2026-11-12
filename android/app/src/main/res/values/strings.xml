@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ChronoCanvas</string>
+    <string name="title_activity_main">ChronoCanvas</string>
+    <string name="package_name">com.chronocanvas.app</string>
+    <string name="custom_url_scheme">com.chronocanvas.app</string>
+</resources>

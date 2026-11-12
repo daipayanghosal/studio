@@ -1,0 +1,95 @@
+name: Build Android APK & GitHub Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. v1.0.0)'
+        required: false
+        default: 'v1.0.0'
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build Next.js static export
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+
+      - name: Build Android Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Prepare APK Release Artifact
+        run: |
+          mkdir -p release-artifacts
+          cp android/app/build/outputs/apk/debug/app-debug.apk release-artifacts/ChronoCanvas-v1.0.0.apk
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChronoCanvas-Android-APK
+          path: release-artifacts/ChronoCanvas-v1.0.0.apk
+
+      - name: Publish GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.inputs.version }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.ref_name }}"
+          fi
+          if [ -z "$TAG" ] || [ "$TAG" = "master" ] || [ "$TAG" = "main" ]; then
+            TAG="v1.0.0"
+          fi
+          echo "Releasing $TAG..."
+
+          gh release create "$TAG" release-artifacts/ChronoCanvas-v1.0.0.apk \
+            --title "ChronoCanvas $TAG (Android)" \
+            --notes "### 📱 ChronoCanvas Android Release ($TAG)
+
+          ✨ **Features in this release:**
+          - 🎨 **Dreamy UI Sanctuary:** Ambient glowing aurora backdrops and glassmorphism styling.
+          - ✍️ **Multilingual Bengali & English Editing:** Integrated Avro phonetic transliteration and full Bengali keyboard.
+          - 💻 **Code Vault & Syntax Highlighting:** Twilight Obsidian theme supporting 35+ programming languages with 1-click copy.
+          - 🛠️ **Rich Formatting Tools:** Headings, pastel highlighters, task lists, tables, images, and voice dictation.
+          - ☁️ **Cloud Database:** Backwards-compatible Firestore integration preserving existing notes and guest offline mode.
+
+          ---
+          ### 📥 How to Install:
+          1. Download **\`ChronoCanvas-v1.0.0.apk\`** below on your Android device.
+          2. Open the downloaded file and tap **Install** (allow *Install unknown apps* if prompted).
+          3. Open **ChronoCanvas** and enjoy your dreamy note-taking experience!" \
+            --clobber || gh release upload "$TAG" release-artifacts/ChronoCanvas-v1.0.0.apk --clobber
