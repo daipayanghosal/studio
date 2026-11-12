@@ -1,129 +1,94 @@
-# ChronoCanvas App Manual
+# ChronoCanvas (ক্রোনোক্যানভাস) 🌌
 
-Welcome to ChronoCanvas, your personal digital journal designed for reflection and organization. This manual will guide you through using the app's features.
+> An ethereal, full-scale multilingual note-taking & code sanctuary with a dreamy aesthetic, native English and Bengali (বাংলা) editing, rich formatting tools, and syntax-highlighted code blocks.
 
-## Environment Setup
+---
 
-Before using ChronoCanvas, you need to configure your environment variables:
+## ✨ Features Overview
 
-1. Copy the example environment file:
-   ```bash
-   copy .env.example .env.local
-   ```
+### 🎨 Dreamy UI & Atmospheric Aesthetic
+- **Glassmorphism & Auroral Orbs**: Ambient floating gradients (`Celestial Aurora`, `Cosmic Nebula`, `Twilight Sunset`, `Breeze Mint`) with hardware-accelerated transforms and frosted glass surfaces.
+- **Multilingual Typography Pairing**: Curated Google Fonts — `Outfit` for display headlines, `Hind Siliguri` & `Noto Sans Bengali` for Bengali scripts, `Plus Jakarta Sans` for clean body text, `Lora` for dreamy serifs, and `JetBrains Mono` for code blocks.
+- **Dark & Light Modes**: Seamless day-and-night theme toggle with tailored pastel tokens for both lighting conditions.
+- **Dream Grid & Serene List Views**: Switch between responsive card masonry and a clean compact list.
 
-2. Update the `.env.local` file with your actual values:
+### 🇧🇩 Multilingual Bengali & English Editing
+- **Dual Language Interface (English / বাংলা)**: Complete localized UI with one-click instant language toggle.
+- **Interactive Bengali Typing Assistant**:
+  - **Avro-style Phonetic Transliteration**: Type English letters (e.g., `ami banglay likhi`, `ajker bhabna`, `shubho sokal`) with live transliteration, smart candidate suggestions, and instant insertion.
+  - **Virtual Bengali Keyboard**: Full layout for vowels (স্বরবর্ণ), vowel signs (কারচিহ্ন), consonants (ব্যঞ্জনবর্ণ), conjunct joiners/hasanta (্), and punctuation (দাঁড়ি ।).
+  - **Bengali Quick Phrases & Numerals (০-৯)**.
+- **Multilingual Voice Typing**: Speech-to-text dictation supporting both Bengali (`bn-BD` / `bn-IN`) and English (`en-US`).
 
+### 🛠️ Rich Formatting Tools (Tiptap v3)
+- **Hierarchy**: H1, H2, H3, Paragraph with quick dropdown selector.
+- **Inline Styling**: Bold, Italic, Underline, Strikethrough, Inline Code, Subscript, Superscript.
+- **Pastel Highlighters & Colors**: 6 pastel highlighters and 10 custom text colors.
+- **Alignment & Structure**: Left, Center, Right, Justify alignment.
+- **Interactive Task Lists**: Checklists with clickable checkboxes that strike through completed tasks.
+- **Tables**: Insert 3x3 tables, add/delete rows & columns.
+- **Embeds**: Link insertion and image URL embedding.
+- **Markdown Shortcuts**: `# `, `## `, `* `, `- `, `1. `, `> `, ```` `, and `- [ ] ` automatically format on space or enter.
 
-### Firebase Configuration
+### 💻 Syntax Highlighting for Code
+- **Powered by lowlight & highlight.js**: Integrated support for 35+ common languages (JavaScript, TypeScript, Python, HTML/XML, CSS, Bash, SQL, C++, Java, Rust, Go, JSON, Markdown, etc.).
+- **Twilight Obsidian Theme**: Custom dark syntax theme with pastel highlight tokens.
+- **Interactive Code Nodes**: Copy code snippet button with one-click clipboard feedback and inline language selector.
 
-To set up Firebase:
-1. Go to the [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project or select an existing one
-3. Navigate to Project Settings > General > Your apps
-4. Add a web app and copy the configuration values
-5. Update these variables in your `.env.local`:
+### 🗂️ Organization, Organization & Insights
+- **Tag Management**: Add, filter, and organize notes by tags.
+- **Pinned & Favorite Notes**: Pin critical thoughts to the top and mark favorites with a heart.
+- **Search & Filter**: Real-time search across titles, contents, and tags (`/` shortcut to focus).
+- **Code Vault & Archive**: Dedicated views for code snippets, archives, and trash.
+- **Live Stats**: Word count, character count, and estimated reading time.
+- **Export Formats**: Export any note as Markdown (`.md`), Plain Text (`.txt`), HTML (`.html`), or Print/PDF.
+- **Templates**: Pre-made templates for Daily Reflection, Code Architecture, Bengali Writing, and Action/Study Plans.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ (tested up to Node 26)
+- npm or yarn
+
+### Environment Setup
+Create a `.env.local` file in the project root:
 
 ```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key_here
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 ```
 
-**Note:** Never commit your `.env.local` file to version control. It contains sensitive information.
-
-## Development
-
-### Installing Dependencies
+### Installation & Run
 
 ```bash
+# Install dependencies
 npm install
-```
 
-### Running the Development Server
-
-```bash
+# Run development server
 npm run dev
 ```
 
-The application will be available at `http://localhost:9002`.
+Visit [http://localhost:3000](http://localhost:3000) or [http://localhost:9002](http://localhost:9002).
 
-### Building for Production
+### Production Build
 
 ```bash
 npm run build
 npm run start
 ```
 
-## Getting Started
+---
 
-To begin using ChronoCanvas, you will need to sign in using your Google account.
+## 🔮 Suggested Future Enhancements
 
-1.  Open the ChronoCanvas application.
-2.  Click on the "Sign in with Google" button.
-3.  Follow the prompts to authenticate with your Google account.
-
-Once successfully authenticated, you will be directed to your journal dashboard.
-
-## Managing Journal Entries
-
-ChronoCanvas allows you to easily create, edit, and delete your journal entries.
-
-### Creating a New Entry
-
-1.  On the journal dashboard, locate and click the button or icon to create a new entry (this is typically a prominent '+' or "New Entry" button).
-2.  A new entry editor will open.
-3.  Type your journal entry content into the provided text area.
-4.  Use the formatting and coloring options described in the following sections to customize your entry.
-5.  To save your entry, look for a "Save" or "Done" button and click it.
-
-### Editing an Existing Entry
-
-1.  On the journal dashboard, find the entry you wish to edit. Entries are typically displayed as cards.
-2.  Click on the entry card. This will open the entry in the editor.
-3.  Make the desired changes to the text or formatting.
-4.  Click the "Save" or "Done" button to update the entry.
-
-### Deleting an Entry
-
-1.  On the journal dashboard, locate the entry you want to delete.
-2.  Look for a delete icon (often a trash can) associated with the entry card.
-3.  Click the delete icon.
-4.  You may be prompted to confirm your decision to delete the entry. Confirm to proceed.
-
-## Text Formatting
-
-ChronoCanvas provides basic text formatting options to enhance your entries.
-
-When the entry editor is open, you will see a toolbar with formatting options:
-
--   **Bold:** Select the text you want to make bold and click the bold icon (often a 'B').
--   **Italics:** Select the text you want to italicize and click the italics icon (often an 'I').
--   **Underline:** Select the text you want to underline and click the underline icon (often a 'U').
-
-You can combine these formatting options on the same text.
-
-## Coloring Entries and Text
-
-ChronoCanvas offers options to color-code your entries and apply color to your text for visual organization and style.
-
-### Color-Coding Entries
-
-1.  When creating or editing an entry, look for an option to assign a color to the entry. This might be a color palette selector.
-2.  Click on the desired color from the provided palette.
-3.  This color will be applied to the entry card on the dashboard, helping you categorize or visually distinguish your entries.
-
-### Coloring Text within Entries
-
-1.  In the entry editor, select the text you wish to color.
-2.  Look for a text coloring tool, often represented by an 'A' with a color swatch or a palette icon.
-3.  Click on the text coloring tool to reveal a palette of 10 UI-matching colors.
-4.  Click on the desired color from the palette to apply it to the selected text.
-
-## Google Authentication
-
-ChronoCanvas uses Google Authentication to provide a secure and convenient way to access your journal. Your journal data is linked to your Google account, ensuring privacy and allowing you to access your entries across devices where you sign in with the same account.
-
-Simply follow the steps in the "Getting Started" section to sign in securely using your Google credentials.
+1. **AI Synthesis & Journal Prompts**: Integrate Google Gemini via Genkit to summarize long entries, suggest titles, or generate introspective prompts in English and Bengali.
+2. **Encrypted / PIN-Locked Notes**: Client-side AES-GCM encryption for personal or sensitive notes.
+3. **Graph / Connection View**: Interactive Obsidian-style node graph linking notes that share tags or cross-references.
+4. **Offline PWA Sync**: Service worker caching and IndexedDB background sync for writing notes completely offline with automatic sync on reconnect.
+5. **Audio Note Recording**: Record voice memos with inline audio player playback alongside transcribed text.
