@@ -25,6 +25,15 @@
     --ring: 248 75% 63%;
     --radius: 0.9rem;
 
+    /* Multilingual Typography Families */
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-outfit: 'Outfit', sans-serif;
+    --font-bengali-display: 'Hind Siliguri', sans-serif;
+    --font-bengali: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
+    --font-serif: 'Lora', Georgia, Cambria, serif;
+    --font-bengali-serif: 'Noto Serif Bengali', 'Lora', Georgia, serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
     /* Dreamy Aura Orbs (Light) */
     --aura-1: rgba(167, 139, 250, 0.32);
     --aura-2: rgba(96, 165, 250, 0.28);
