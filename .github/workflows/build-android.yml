@@ -76,20 +76,23 @@ jobs:
           fi
           echo "Releasing $TAG..."
 
-          gh release create "$TAG" release-artifacts/ChronoCanvas-v1.0.0.apk \
-            --title "ChronoCanvas $TAG (Android)" \
-            --notes "### 📱 ChronoCanvas Android Release ($TAG)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release-artifacts/ChronoCanvas-v1.0.0.apk --clobber
+          else
+            gh release create "$TAG" release-artifacts/ChronoCanvas-v1.0.0.apk \
+              --title "ChronoCanvas $TAG (Android)" \
+              --notes "### 📱 ChronoCanvas Android Release ($TAG)
 
-          ✨ **Features in this release:**
-          - 🎨 **Dreamy UI Sanctuary:** Ambient glowing aurora backdrops and glassmorphism styling.
-          - ✍️ **Multilingual Bengali & English Editing:** Integrated Avro phonetic transliteration and full Bengali keyboard.
-          - 💻 **Code Vault & Syntax Highlighting:** Twilight Obsidian theme supporting 35+ programming languages with 1-click copy.
-          - 🛠️ **Rich Formatting Tools:** Headings, pastel highlighters, task lists, tables, images, and voice dictation.
-          - ☁️ **Cloud Database:** Backwards-compatible Firestore integration preserving existing notes and guest offline mode.
+✨ **Features in this release:**
+- 🎨 **Dreamy UI Sanctuary:** Ambient glowing aurora backdrops and glassmorphism styling.
+- ✍️ **Multilingual Bengali & English Editing:** Integrated Avro phonetic transliteration and full Bengali keyboard.
+- 💻 **Code Vault & Syntax Highlighting:** Twilight Obsidian theme supporting 35+ programming languages with 1-click copy.
+- 🛠️ **Rich Formatting Tools:** Headings, pastel highlighters, task lists, tables, images, and voice dictation.
+- ☁️ **Cloud Database:** Backwards-compatible Firestore integration preserving existing notes and guest offline mode.
 
-          ---
-          ### 📥 How to Install:
-          1. Download **\`ChronoCanvas-v1.0.0.apk\`** below on your Android device.
-          2. Open the downloaded file and tap **Install** (allow *Install unknown apps* if prompted).
-          3. Open **ChronoCanvas** and enjoy your dreamy note-taking experience!" \
-            --clobber || gh release upload "$TAG" release-artifacts/ChronoCanvas-v1.0.0.apk --clobber
+---
+### 📥 How to Install:
+1. Download **\`ChronoCanvas-v1.0.0.apk\`** below on your Android device.
+2. Open the downloaded file and tap **Install** (allow *Install unknown apps* if prompted).
+3. Open **ChronoCanvas** and enjoy your dreamy note-taking experience!"
+          fi
