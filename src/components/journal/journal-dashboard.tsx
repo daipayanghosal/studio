@@ -50,7 +50,7 @@ import { cn } from '@/lib/utils';
 import type { Timestamp } from 'firebase/firestore';
 
 export default function JournalDashboard() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const { t, locale, toggleLocale, theme, toggleTheme, aura, setAura } = useApp();
 
   const {
@@ -65,7 +65,7 @@ export default function JournalDashboard() {
     duplicateEntry,
     emptyTrash,
     loading,
-  } = useJournalEntries(user?.uid);
+  } = useJournalEntries(user?.uid, isGuest);
 
   // UI State
   const [searchQuery, setSearchQuery] = useState('');
@@ -414,6 +414,24 @@ export default function JournalDashboard() {
 
       {/* Main Canvas Workspace */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 space-y-6">
+        {/* Guest Mode Indicator Banner */}
+        {isGuest && !user && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 px-4 rounded-2xl border border-primary/20 bg-primary/[0.05] backdrop-blur-md text-xs shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+              <span className="font-medium text-foreground">
+                Guest Mode: Your notes are preserved locally. Sign in with Google anytime to automatically sync them to Cloud Firestore.
+              </span>
+            </div>
+            <a
+              href="/login"
+              className="px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all text-center shrink-0 shadow-sm"
+            >
+              Sign in with Google
+            </a>
+          </div>
+        )}
+
         {/* Navigation Tabs Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/50">
           {/* Navigation Pill Filters */}

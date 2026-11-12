@@ -1,26 +1,78 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import DreamBackdrop from "@/components/ui/dream-backdrop";
-import { Sparkles, Loader2 } from "lucide-react";
+import { useAuth } from "@/components/auth/auth-provider";
+import { Sparkles, Loader2, AlertCircle, Copy, Check, ExternalLink, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
+  const { continueAsGuest } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isUnauthorizedDomain, setIsUnauthorizedDomain] = useState(false);
+  const [currentHostname, setCurrentHostname] = useState("");
+  const [copiedDomain, setCopiedDomain] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentHostname(window.location.hostname);
+    }
+  }, []);
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
     try {
       setLoading(true);
+      setErrorMessage(null);
+      setIsUnauthorizedDomain(false);
+
       await signInWithPopup(auth, provider);
-      // The auth state change will be handled by the AuthProvider, which will redirect.
-    } catch (error) {
+      // The auth state change is handled by AuthProvider which will route to '/'
+    } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       setLoading(false);
+
+      const code = error?.code || "";
+      const message = error?.message || "An unexpected authentication error occurred.";
+
+      if (code === "auth/unauthorized-domain") {
+        setIsUnauthorizedDomain(true);
+        setErrorMessage(
+          `Domain not authorized: "${window.location.hostname}" is not yet in Firebase Auth's Authorized Domains list.`
+        );
+      } else if (code === "auth/popup-blocked") {
+        // Try redirect if popup was blocked
+        try {
+          setLoading(true);
+          await signInWithRedirect(auth, provider);
+        } catch (redirectError: any) {
+          setErrorMessage("Popup blocked by browser. Please allow popups for this site.");
+        }
+      } else if (code === "auth/popup-closed-by-user") {
+        setErrorMessage("Sign-in popup was closed before completion. Please try again.");
+      } else {
+        setErrorMessage(message);
+      }
     }
+  };
+
+  const handleCopyHostname = async () => {
+    if (!currentHostname) return;
+    try {
+      await navigator.clipboard.writeText(currentHostname);
+      setCopiedDomain(true);
+      setTimeout(() => setCopiedDomain(false), 2000);
+    } catch {}
   };
 
   return (
@@ -54,7 +106,57 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="space-y-4 pt-2">
+        {/* Error Notification Alert */}
+        {errorMessage && (
+          <div className="p-3.5 rounded-xl border border-destructive/30 bg-destructive/10 text-left space-y-2 text-xs text-destructive-foreground animate-in fade-in-50">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-foreground text-xs">Authentication Notice</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                  {errorMessage}
+                </p>
+              </div>
+            </div>
+
+            {isUnauthorizedDomain && currentHostname && (
+              <div className="pt-2 border-t border-destructive/20 space-y-2">
+                <p className="text-[11px] text-foreground font-medium">
+                  To enable Google Sign-In for this deployment:
+                </p>
+                <ol className="list-decimal list-inside text-[10px] text-muted-foreground space-y-1">
+                  <li>Go to Firebase Console &gt; Authentication &gt; Settings</li>
+                  <li>Click <strong>Authorized Domains</strong> &gt; Add Domain</li>
+                  <li>Add: <code className="bg-muted px-1 py-0.5 rounded font-mono font-bold text-foreground">{currentHostname}</code> or <code className="bg-muted px-1 py-0.5 rounded font-mono font-bold text-foreground">vercel.app</code></li>
+                </ol>
+                <div className="flex items-center gap-2 pt-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCopyHostname}
+                    className="h-7 text-[11px] gap-1 flex-1"
+                  >
+                    {copiedDomain ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                    <span>{copiedDomain ? "Domain Copied" : "Copy Domain"}</span>
+                  </Button>
+                  <a
+                    href="https://console.firebase.google.com/project/chronocanvas-nakny/authentication/settings"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-7 px-2.5 inline-flex items-center gap-1 text-[11px] font-medium rounded-md border border-border bg-background hover:bg-muted text-foreground"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    <span>Firebase Console</span>
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="space-y-3 pt-1">
+          {/* Sign in with Google */}
           <Button
             onClick={handleGoogleSignIn}
             disabled={loading}
@@ -79,8 +181,19 @@ export default function LoginPage() {
             <span>Sign in with Google</span>
           </Button>
 
-          <p className="text-[11px] text-muted-foreground">
-            Synchronized with Firebase Auth & Cloud Firestore
+          {/* Guest Mode Fallback */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={continueAsGuest}
+            className="w-full h-11 rounded-xl text-xs font-semibold border-border/80 hover:bg-muted/60 transition-all gap-1.5"
+          >
+            <span>Continue as Guest / Explore Canvas</span>
+            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+          </Button>
+
+          <p className="text-[11px] text-muted-foreground pt-1">
+            Connected to Firebase project: <code className="font-mono text-foreground font-medium">chronocanvas-nakny</code>
           </p>
         </div>
 
